@@ -1,0 +1,3 @@
+[submodule "lib/matiec"]
+	path = lib/matiec
+	url = https://github.com/kinsamanka/matiec.git
