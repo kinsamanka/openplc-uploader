@@ -150,38 +150,39 @@ static ModbusError slave_exception_CB(const ModbusSlave * status,
     return MODBUS_OK;
 }
 
-static int handle_slave_request(uint8_t * data, size_t *length)
+int process_request(struct modbus_buf *buf)
 {
-    ModbusErrorInfo err;
+    int result = 0;
+    /* reset global error flag */
+    slave_err = 0;
 
-    err = modbusParseRequestRTU(&slave, SLAVE_ADDRESS,
-                                (const uint8_t *)data, *length);
+    if (buf->len) {
+        ModbusErrorInfo err;
+        err = modbusParseRequestRTU(&slave, SLAVE_ADDRESS,
+                                    (const uint8_t *)buf->data, buf->len);
 
-    if (modbusIsOk(err)) {
+        if (modbusIsOk(err)) {
 
-        uint16_t sz;
-        /* no reply on broadcast messages */
-        if ((sz = modbusSlaveGetResponseLength(&slave))) {
-            uint8_t *dat = (uint8_t *) modbusSlaveGetResponse(&slave);
+            uint16_t sz;
+            /* no reply on broadcast messages */
+            if ((sz = modbusSlaveGetResponseLength(&slave))) {
+                uint8_t *dat = (uint8_t *) modbusSlaveGetResponse(&slave);
 
-            *length = sz;
-            memcpy(data, dat, sz);
+                buf->len = sz;
+                memcpy(buf->data, dat, sz);
 
-            return 1;
+                result = 1;
+            }
         }
     }
 
-    return 0;
-}
-
-int process_request(struct modbus_buf *buf)
-{
-    slave_err = 0;
-    int result = 1;
-    result = handle_slave_request(buf->data, &buf->len);
-
     if (slave_err)
         result = 0;
+
+    if (!result)
+        buf->len = 0;
+
+    buf->pos = 0;
 
     return result;
 }

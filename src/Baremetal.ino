@@ -68,14 +68,8 @@ void loop()
                 (void) MBSERIAL_IFACE.read();
             rx_buf.last_rx = t;
         } else if ((t - rx_buf.last_rx) > 2) {
-            // process data
-            if (rx_buf.len && process_request(&rx_buf)) {
+            if (process_request(&rx_buf))
                 state = TX;
-                rx_buf.pos = 0;
-            } else {
-                rx_buf.len = 0;
-                rx_buf.last_rx = t;
-            }
         }
         break;
 
