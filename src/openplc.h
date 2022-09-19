@@ -29,6 +29,16 @@ typedef uint64_t   IEC_LWORD;
 typedef float    IEC_REAL;
 typedef double   IEC_LREAL;
 
+//OpenPLC Buffers
+extern IEC_UINT QW[];
+extern IEC_UINT IW[];
+extern IEC_BOOL QX[];
+extern IEC_BOOL IX[];
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //MatIEC Compiler
 void config_run__(unsigned long tick);
 void config_init__(void);
@@ -40,16 +50,15 @@ extern unsigned long long common_ticktime__;
 //glueVars.c
 void updateTime();
 
-//OpenPLC Buffers
-extern IEC_UINT QW[];
-extern IEC_UINT IW[];
-extern IEC_BOOL QX[];
-extern IEC_BOOL IX[];
-
 //Hardware Layer
 void hardwareInit();
 void updateInputBuffers();
 void updateOutputBuffers();
 void setupCycleDelay(unsigned long long cycle_time);
 void cycleDelay();
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

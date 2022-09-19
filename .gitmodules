@@ -1,3 +1,6 @@
 [submodule "lib/matiec"]
 	path = lib/matiec
 	url = https://github.com/kinsamanka/matiec.git
+[submodule "lib/modbus"]
+	path = lib/modbus
+	url = https://github.com/Jacajack/liblightmodbus.git
