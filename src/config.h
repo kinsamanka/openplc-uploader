@@ -7,14 +7,10 @@
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__) || \
     defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
 
-#define HOLDING_REG_COUNT       3
-#define INPUT_REG_COUNT         6
+#define HOLDING_REG_COUNT       8
+#define INPUT_REG_COUNT         8
 #define COIL_COUNT              8
 #define DISCRETE_COUNT          8
-
-#ifdef MODBUS_MASTER
-#undef MODBUS_MASTER
-#endif
 
 #endif
 
@@ -23,7 +19,7 @@
 #endif
 
 #ifndef INPUT_REG_COUNT
-#define INPUT_REG_COUNT         8
+#define INPUT_REG_COUNT         16
 #endif
 
 #ifndef COIL_COUNT
@@ -47,8 +43,37 @@
 #define SLAVE_BAUD_RATE         115200
 #endif
 
-#define MBSERIAL_IFACE          Serial
+#ifndef MBSLAVE_IFACE
+#define MBSLAVE_IFACE           Serial
+#endif
 
+#define MB_SLAVE_TIMEOUT        5
+
+#ifdef MODBUS_SLAVE
+#define MBSLAVE                 1
+#else
+#define MBSLAVE                 0
+#endif
+
+#ifdef MODBUS_MASTER
+
+#define MBMASTER                1
+
+#ifndef MBMASTER_IFACE
+#define MBMASTER_IFACE          Serial1
+#endif
+
+#ifndef MASTER_BAUD_RATE
+#define MASTER_BAUD_RATE        115200
+#endif
+
+#define MB_MASTER_TIMEOUT       50
+
+#else
+
+#define MBMASTER                0
+
+#endif      /* MODBUS_MASTER */
 
 /* calculate UART buffer length */
 #if IW_COUNT > QW_COUNT

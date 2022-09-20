@@ -5,3 +5,4 @@
 .core_dir
 .*.sw*
 src/generated
+build

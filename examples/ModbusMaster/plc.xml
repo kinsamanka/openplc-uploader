@@ -1,0 +1,581 @@
+<?xml version='1.0' encoding='utf-8'?>
+<project xmlns:ns1="http://www.plcopen.org/xml/tc6_0201" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.plcopen.org/xml/tc6_0201">
+  <fileHeader companyName="Unknown" productName="Modbus Master" productVersion="1" creationDateTime="2022-09-23T14:01:23"/>
+  <contentHeader name="Modbus Master" modificationDateTime="2022-09-26T17:45:47">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="0" y="0"/>
+      </fbd>
+      <ld>
+        <scaling x="0" y="0"/>
+      </ld>
+      <sfc>
+        <scaling x="0" y="0"/>
+      </sfc>
+    </coordinateInfo>
+  </contentHeader>
+  <types>
+    <dataTypes/>
+    <pous>
+      <pou name="MB_write_single_register" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <UINT/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Register value]]></xhtml:p>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_WRITE_SINGLE_REGISTER(Address, Index, Input, State) */
+
+    MB_RTU_WRITE_SINGLE_REGISTER(1, 0, IN, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_write_multiple_registers" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <UINT/>
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Size of array detemines the number of registers to be written]]></xhtml:p>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_WRITE_MULTIPLE_REGISTERS(Address, Index, Inputs, State) */
+
+    MB_RTU_WRITE_MULTIPLE_REGISTERS(1, 0, IN, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_write_single_coil" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Coil value]]></xhtml:p>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_WRITE_SINGLE_COIL(Address, Index, Input, State) */
+
+    MB_RTU_WRITE_SINGLE_COIL(1, 0, IN, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_write_multiple_coils" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <BOOL/>
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Size of array detemines the number of registers to be written]]></xhtml:p>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_WRITE_MULTIPLE_COILS(Address, Index, Inputs, State) */
+
+    MB_RTU_WRITE_MULTIPLE_COILS(1, 0, IN, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_read_discrete_inputs" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <BOOL/>
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Size of array detemines the number of registers to be read]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_READ_DISCRETE_INPUTS(Address, Index, Outputs, State) */
+
+    MB_RTU_READ_DISCRETE_INPUTS(1, 0, OUT, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_read_coils" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <BOOL/>
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Size of array detemines the number of registers to be read]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_READ_COILS(Address, Index, Outputs, State) */
+
+    MB_RTU_READ_COILS(1, 0, OUT, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_read_input_registers" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <UINT/>
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Size of array detemines the number of registers to be read]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_READ_INPUT_REGISTERS(Address, Index, Outputs, State) */
+
+    MB_RTU_READ_INPUT_REGISTERS(1, 0, OUT, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="MB_read_holding_registers" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <UINT/>
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Size of array detemines the number of registers to be read]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[State of modbus call (TRUE == OK)]]></xhtml:p>
+              </documentation>
+            </variable>
+          </outputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[{
+#ifdef MODBUS_MASTER
+#include "modbus_master.h"
+
+    /* MB_RTU_READ_HOLDING_REGISTERS(Address, Index, Outputs, State) */
+
+    MB_RTU_READ_HOLDING_REGISTERS(1, 0, OUT, Q);
+
+#else
+
+    /* return not OK for simulation */
+    SetFbVar(Q, 0);
+
+#endif
+}
+]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+      <pou name="ModbusMaster" pouType="program">
+        <interface>
+          <localVars>
+            <variable name="OUTW">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <UINT/>
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="INW1">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <UINT/>
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="OUTX">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <BOOL/>
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="INX1">
+              <type>
+                <array>
+                  <dimension lower="0" upper="7"/>
+                  <baseType>
+                    <BOOL/>
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="Q">
+              <type>
+                <BOOL/>
+              </type>
+            </variable>
+            <variable name="INX0">
+              <type>
+                <BOOL/>
+              </type>
+            </variable>
+            <variable name="INW0">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+            <variable name="read_coils">
+              <type>
+                <derived name="MB_read_coils"/>
+              </type>
+            </variable>
+            <variable name="read_discrete_inputs">
+              <type>
+                <derived name="MB_read_discrete_inputs"/>
+              </type>
+            </variable>
+            <variable name="read_holding_registers">
+              <type>
+                <derived name="MB_read_holding_registers"/>
+              </type>
+            </variable>
+            <variable name="read_input_registers">
+              <type>
+                <derived name="MB_read_input_registers"/>
+              </type>
+            </variable>
+            <variable name="write_single_coil">
+              <type>
+                <derived name="MB_write_single_coil"/>
+              </type>
+            </variable>
+            <variable name="write_multiple_coils">
+              <type>
+                <derived name="MB_write_multiple_coils"/>
+              </type>
+            </variable>
+            <variable name="write_single_register">
+              <type>
+                <derived name="MB_write_single_register"/>
+              </type>
+            </variable>
+            <variable name="write_multiple_registers">
+              <type>
+                <derived name="MB_write_multiple_registers"/>
+              </type>
+            </variable>
+          </localVars>
+          <localVars>
+            <variable name="inp0" address="%IW0">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+            <variable name="inp1" address="%IW1">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+            <variable name="inp2" address="%IW2">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+            <variable name="inp3" address="%IW3">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+            <variable name="inp4" address="%IW4">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+            <variable name="inp5" address="%IW5">
+              <type>
+                <UINT/>
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml:p><![CDATA[read_coils(
+     OUT => OUTX,
+     Q => Q);
+
+read_discrete_inputs(
+     OUT => OUTX,
+     Q => Q);
+
+read_holding_registers(
+     OUT => OUTW,
+     Q => Q);
+
+read_input_registers(
+     OUT => OUTW,
+     Q => Q);
+
+write_single_coil(
+     IN := INX0,
+     Q => Q);
+
+write_multiple_coils(
+     IN := INX1,
+     Q => Q);
+
+write_single_register(
+     IN := INW0,
+     Q => Q);
+
+INW1[0] := inp0;
+INW1[1] := inp1;
+INW1[2] := inp2;
+INW1[3] := inp3;
+INW1[4] := inp4;
+INW1[5] := inp5;
+
+write_multiple_registers(
+     IN := INW1,
+     Q => Q);]]></xhtml:p>
+          </ST>
+        </body>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations>
+      <configuration name="config">
+        <resource name="resource1">
+          <task name="task0" priority="0" interval="T#20ms">
+            <pouInstance name="instance0" typeName="ModbusMaster"/>
+          </task>
+        </resource>
+      </configuration>
+    </configurations>
+  </instances>
+</project>

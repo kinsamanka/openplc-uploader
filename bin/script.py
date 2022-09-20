@@ -58,4 +58,4 @@ makedirs(gdir, exist_ok=True)
 path = env.PioPlatform().get_package_dir("tool-matiec")
 cmd = "iec2c.exe" if platform.system() == "Windows" else "iec2c"
 
-check_output(f"{path}/bin/{cmd} -I lib/matiec/lib -T src/generated plc_prog.st", shell=True)
+check_output(f"{path}/bin/{cmd} -l -I lib/matiec/lib -T src/generated plc_prog.st", shell=True)

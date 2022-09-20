@@ -1,169 +1,267 @@
-FUNCTION_BLOCK traffic_light_sequence
+FUNCTION_BLOCK MB_write_multiple_registers
   VAR_INPUT
-    SWITCH_BUTTON : BOOL;
-    PEDESTRIAN_BUTTON : BOOL;
+    IN : ARRAY [0..7] OF UINT;
   END_VAR
   VAR_OUTPUT
-    RED_LIGHT : BOOL;
-    ORANGE_LIGHT : BOOL;
-    GREEN_LIGHT : BOOL;
-    PEDESTRIAN_RED_LIGHT : BOOL;
-    PEDESTRIAN_GREEN_LIGHT : BOOL;
-  END_VAR
-  VAR
-    TON1 : TON;
-    TON2 : TON;
-    ALLOW_CARS : BOOL;
-    WARN_CARS : BOOL;
-    STOP_CARS : BOOL;
-    ALLOW_PEDESTRIANS : BOOL;
-    STOP_PEDESTRIANS : BOOL;
-    TON3 : TON;
-    R_TRIG0 : R_TRIG;
-    R_TRIG1 : R_TRIG;
-    SR0 : SR;
-    NOT42_OUT : BOOL;
-    OR35_OUT : BOOL;
+    Q : BOOL;
   END_VAR
 
-  INITIAL_STEP Standstill:
-    STANDSTILL_INLINE1(P);
-    BLINK_ORANGE_LIGHT(N);
-    PEDESTRIAN_RED_LIGHT(R);
-    PEDESTRIAN_GREEN_LIGHT(R);
-    RED_LIGHT(R);
-    GREEN_LIGHT(R);
-    COMPUTE_FUNCTION_BLOCKS(S);
-  END_STEP
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
 
-  ACTION STANDSTILL_INLINE1:
-    ORANGE_LIGHT := 1;
-  END_ACTION
+      /* MB_RTU_WRITE_MULTIPLE_REGISTERS(Address, Index, Inputs, State) */
 
-  ACTION BLINK_ORANGE_LIGHT:
-    TON1(IN := NOT(ORANGE_LIGHT), PT := T#500ms);
-    R_TRIG1(CLK := TON1.Q);
-    IF R_TRIG1.Q THEN
-      ORANGE_LIGHT := TRUE; (*set*)
-    END_IF;
-    TON2(IN := ORANGE_LIGHT, PT := T#500ms);
-    R_TRIG0(CLK := TON2.Q);
-    IF R_TRIG0.Q THEN
-      ORANGE_LIGHT := FALSE; (*reset*)
-    END_IF;
-  END_ACTION
+      MB_RTU_WRITE_MULTIPLE_REGISTERS(1, 0, IN, Q);
 
-  ACTION COMPUTE_FUNCTION_BLOCKS:
-    NOT42_OUT := NOT(SWITCH_BUTTON);
-    SR0(S1 := PEDESTRIAN_BUTTON, R := TON3.Q);
-    TON3(IN := SR0.Q1, PT := T#2s);
-    OR35_OUT := OR(TON3.Q, WARN_CARS);
-  END_ACTION
+  #else
 
-  TRANSITION FROM Standstill TO ORANGE
-    := SWITCH_BUTTON;
-  END_TRANSITION
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
 
-  STEP ORANGE:
-    GREEN_LIGHT(R);
-    ORANGE_LIGHT(S);
-    PEDESTRIAN_RED_LIGHT(S);
-    STOP_CARS(D, T#2s);
-  END_STEP
-
-  TRANSITION FROM ORANGE TO RED
-    := STOP_CARS;
-  END_TRANSITION
-
-  STEP RED:
-    ORANGE_LIGHT(R);
-    RED_LIGHT(S);
-    ALLOW_PEDESTRIANS(D, T#2s);
-  END_STEP
-
-  TRANSITION FROM RED TO PEDESTRIAN_GREEN
-    := ALLOW_PEDESTRIANS;
-  END_TRANSITION
-
-  STEP PEDESTRIAN_GREEN:
-    PEDESTRIAN_GREEN_LIGHT(S);
-    PEDESTRIAN_RED_LIGHT(R);
-    STOP_PEDESTRIANS(D, T#10s);
-  END_STEP
-
-  TRANSITION FROM PEDESTRIAN_GREEN TO PEDESTRIAN_RED
-    := STOP_PEDESTRIANS;
-  END_TRANSITION
-
-  STEP PEDESTRIAN_RED:
-    PEDESTRIAN_RED_LIGHT(S);
-    PEDESTRIAN_GREEN_LIGHT(R);
-    ALLOW_CARS(D, T#2s);
-  END_STEP
-
-  TRANSITION FROM PEDESTRIAN_RED TO GREEN
-    := ALLOW_CARS;
-  END_TRANSITION
-
-  STEP GREEN:
-    GREEN_LIGHT(S);
-    RED_LIGHT(R);
-    WARN_CARS(D, T#20s);
-  END_STEP
-
-  TRANSITION FROM GREEN TO Standstill
-    := NOT SWITCH_BUTTON;
-  END_TRANSITION
-
-  TRANSITION FROM GREEN TO ORANGE
-    := OR35_OUT;
-  END_TRANSITION
-
-  TRANSITION FROM PEDESTRIAN_RED TO Standstill
-    := NOT(SWITCH_BUTTON);
-  END_TRANSITION
-
-  TRANSITION FROM PEDESTRIAN_GREEN TO Standstill
-    := NOT SWITCH_BUTTON;
-  END_TRANSITION
-
-  TRANSITION FROM RED TO Standstill
-    := NOT42_OUT;
-  END_TRANSITION
-
-  TRANSITION FROM ORANGE TO Standstill
-    := NOT42_OUT;
-  END_TRANSITION
-
+  #endif
+  }
 END_FUNCTION_BLOCK
 
-PROGRAM program0
-  VAR
-    trafic_light_sequence0 : traffic_light_sequence;
+FUNCTION_BLOCK MB_write_single_coil
+  VAR_INPUT
+    IN : BOOL;
   END_VAR
-  VAR
-    OUT0 AT %QX0.0 : BOOL;
-    OUT1 AT %QX0.1 : BOOL;
-    OUT2 AT %QX0.2 : BOOL;
-    OUT3 AT %QX0.3 : BOOL;
-    OUT4 AT %QX0.4 : BOOL;
-    IN0 AT %IX0.0 : BOOL;
-    IN1 AT %IX0.1 : BOOL;
+  VAR_OUTPUT
+    Q : BOOL;
   END_VAR
 
-  trafic_light_sequence0(SWITCH_BUTTON := IN0, PEDESTRIAN_BUTTON := IN1);
-  OUT0 := trafic_light_sequence0.RED_LIGHT;
-  OUT1 := trafic_light_sequence0.ORANGE_LIGHT;
-  OUT2 := trafic_light_sequence0.GREEN_LIGHT;
-  OUT3 := trafic_light_sequence0.PEDESTRIAN_RED_LIGHT;
-  OUT4 := trafic_light_sequence0.PEDESTRIAN_GREEN_LIGHT;
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_WRITE_SINGLE_COIL(Address, Index, Input, State) */
+
+      MB_RTU_WRITE_SINGLE_COIL(1, 0, IN, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK MB_write_multiple_coils
+  VAR_INPUT
+    IN : ARRAY [0..7] OF BOOL;
+  END_VAR
+  VAR_OUTPUT
+    Q : BOOL;
+  END_VAR
+
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_WRITE_MULTIPLE_COILS(Address, Index, Inputs, State) */
+
+      MB_RTU_WRITE_MULTIPLE_COILS(1, 0, IN, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK MB_read_holding_registers
+  VAR_OUTPUT
+    OUT : ARRAY [0..7] OF UINT;
+    Q : BOOL;
+  END_VAR
+
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_READ_HOLDING_REGISTERS(Address, Index, Outputs, State) */
+
+      MB_RTU_READ_HOLDING_REGISTERS(1, 0, OUT, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK MB_read_coils
+  VAR_OUTPUT
+    OUT : ARRAY [0..7] OF BOOL;
+    Q : BOOL;
+  END_VAR
+
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_READ_COILS(Address, Index, Outputs, State) */
+
+      MB_RTU_READ_COILS(1, 0, OUT, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK MB_read_input_registers
+  VAR_OUTPUT
+    OUT : ARRAY [0..7] OF UINT;
+    Q : BOOL;
+  END_VAR
+
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_READ_INPUT_REGISTERS(Address, Index, Outputs, State) */
+
+      MB_RTU_READ_INPUT_REGISTERS(1, 0, OUT, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK MB_write_single_register
+  VAR_INPUT
+    IN : UINT;
+  END_VAR
+  VAR_OUTPUT
+    Q : BOOL;
+  END_VAR
+
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_WRITE_SINGLE_REGISTER(Address, Index, Input, State) */
+
+      MB_RTU_WRITE_SINGLE_REGISTER(1, 0, IN, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK MB_read_discrete_inputs
+  VAR_OUTPUT
+    OUT : ARRAY [0..7] OF BOOL;
+    Q : BOOL;
+  END_VAR
+
+  {
+  #ifdef MODBUS_MASTER
+  #include "modbus_master.h"
+
+      /* MB_RTU_READ_DISCRETE_INPUTS(Address, Index, Outputs, State) */
+
+      MB_RTU_READ_DISCRETE_INPUTS(1, 0, OUT, Q);
+
+  #else
+
+      /* return not OK for simulation */
+      SetFbVar(Q, 0);
+
+  #endif
+  }
+END_FUNCTION_BLOCK
+
+PROGRAM ModbusMaster
+  VAR
+    OUTW : ARRAY [0..7] OF UINT;
+    INW1 : ARRAY [0..7] OF UINT;
+    OUTX : ARRAY [0..7] OF BOOL;
+    INX1 : ARRAY [0..7] OF BOOL;
+    Q : BOOL;
+    INX0 : BOOL;
+    INW0 : UINT;
+    read_coils : MB_read_coils;
+    read_discrete_inputs : MB_read_discrete_inputs;
+    read_holding_registers : MB_read_holding_registers;
+    read_input_registers : MB_read_input_registers;
+    write_single_coil : MB_write_single_coil;
+    write_multiple_coils : MB_write_multiple_coils;
+    write_single_register : MB_write_single_register;
+    write_multiple_registers : MB_write_multiple_registers;
+  END_VAR
+  VAR
+    inp0 AT %IW0 : UINT;
+    inp1 AT %IW1 : UINT;
+    inp2 AT %IW2 : UINT;
+    inp3 AT %IW3 : UINT;
+    inp4 AT %IW4 : UINT;
+    inp5 AT %IW5 : UINT;
+  END_VAR
+
+  read_coils(
+       OUT => OUTX,
+       Q => Q);
+
+  read_discrete_inputs(
+       OUT => OUTX,
+       Q => Q);
+
+  read_holding_registers(
+       OUT => OUTW,
+       Q => Q);
+
+  read_input_registers(
+       OUT => OUTW,
+       Q => Q);
+
+  write_single_coil(
+       IN := INX0,
+       Q => Q);
+
+  write_multiple_coils(
+       IN := INX1,
+       Q => Q);
+
+  write_single_register(
+       IN := INW0,
+       Q => Q);
+
+  INW1[0] := inp0;
+  INW1[1] := inp1;
+  INW1[2] := inp2;
+  INW1[3] := inp3;
+  INW1[4] := inp4;
+  INW1[5] := inp5;
+
+  write_multiple_registers(
+       IN := INW1,
+       Q => Q);
 END_PROGRAM
 
 
-CONFIGURATION Config0
+CONFIGURATION config
 
-  RESOURCE Res0 ON PLC
-    TASK task0(INTERVAL := T#100ms,PRIORITY := 0);
-    PROGRAM instance0 WITH task0 : program0;
+  RESOURCE resource1 ON PLC
+    TASK task0(INTERVAL := T#20ms,PRIORITY := 0);
+    PROGRAM instance0 WITH task0 : ModbusMaster;
   END_RESOURCE
 END_CONFIGURATION
