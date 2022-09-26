@@ -10,11 +10,6 @@ Analog In: A0, A1, A2, A3, A4, A5   (%IW0 - %IW5)
 Analog Out: 9, 10, 11               (%QW0 - %QW2)
 **********************************************************/
 
-#define NUM_DISCRETE_INPUT          5
-#define NUM_ANALOG_INPUT            6
-#define NUM_DISCRETE_OUTPUT         4
-#define NUM_ANALOG_OUTPUT           3
-
 #define DIN                         {2, 3, 4, 5, 6}
 #define AIN                         {A0, A1, A2, A3, A4, A5}
 #define DOUT                        {7, 8, 12, 13}
@@ -38,11 +33,6 @@ Analog Out: 2, 3, 4, 5, 6, 7, 8, 9                (%QW0 - %QW7)
 			
 *********************************************************************/
 
-#define NUM_DISCRETE_INPUT          24
-#define NUM_ANALOG_INPUT            8
-#define NUM_DISCRETE_OUTPUT         24
-#define NUM_ANALOG_OUTPUT           12
-
 #define DIN                         {62, 63, 64, 65, 66, 67, 68, 69, 22, 24, \
                                      26, 28, 30, 32, 34, 36, 38, 40, 42, 44, \
                                      46, 48, 50, 52}
@@ -61,11 +51,6 @@ Analog In: A1, A2, A3, A4, A5, A6, A7       (%IW0 - %IW6)
 Analog Out: 9, 14                           (%QW0 - %QW1)
 **************************************************************/
 
-#define NUM_DISCRETE_INPUT          5
-#define NUM_ANALOG_INPUT            7
-#define NUM_DISCRETE_OUTPUT         6
-#define NUM_ANALOG_OUTPUT           2
-
 #define DIN                         {2, 3, 4, 5, 6}
 #define AIN                         {15, 16, 17, 18, 19, 20, 21}
 #define DOUT                        {7, 8, 10, 11, 12, 13}
@@ -82,11 +67,6 @@ Analog In:   34, 35, 36, 39                 (%IW0 - %IW2)
 Analog Out:  25, 26                         (%QW0 - %QW1)
 *****************************************************************/
 
-#define NUM_DISCRETE_INPUT          9
-#define NUM_ANALOG_INPUT            4
-#define NUM_DISCRETE_OUTPUT         10
-#define NUM_ANALOG_OUTPUT           2
-
 #define DIN                         {17, 18, 19, 21, 22, 23, 27, 32, 33}
 #define DOUT                        {01, 02, 03, 04, 05, 12, 13, 14, 15, 16}
 #define AIN                         {34, 35, 36, 39}
@@ -100,11 +80,6 @@ Digital Out: 7, 8, 9, 10, 11, 12            (%QX0.0 - %QX0.5)
 Analog In: A1, A2, A3, A4, A5, A6           (%IW0 - %IW5)
 Analog Out: 6, 15                           (%QW0 - %QW1)
 **************************************************************/
-
-#define NUM_DISCRETE_INPUT          6
-#define NUM_ANALOG_INPUT            6
-#define NUM_DISCRETE_OUTPUT         6
-#define NUM_ANALOG_OUTPUT           2
 
 #define DIN                         {0, 1, 2, 3, 4, 5}
 #define AIN                         {A1, A2, A3, A4, A5, A6}
