@@ -9,7 +9,7 @@ struct modbus_buf {
     size_t len;
     size_t pos;
     size_t size;
-    unsigned long last_rx;
+    unsigned long last_dt;
 };
 
 #if MBMASTER

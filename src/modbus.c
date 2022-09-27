@@ -1,5 +1,4 @@
 #include <string.h>
-#include "config.h"
 #include "modbus.h"
 
 #if MBMASTER
@@ -30,7 +29,7 @@ struct modbus_buf mb_master_buf = {
         .len = 0,
         .pos = 0,
         .size = 0,
-        .last_rx = 0,
+        .last_dt = 0,
 };
 
 static struct mb_buffer {

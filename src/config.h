@@ -4,8 +4,7 @@
 #define NUM(a) (sizeof(a) / sizeof(*a))
 #define ct_assert(e) ((void)sizeof(char[1 - 2*!(e)]))
 
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__) || \
-    defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
+#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__)
 
 #define HOLDING_REG_COUNT       8
 #define INPUT_REG_COUNT         8
@@ -74,6 +73,10 @@
 #define MBMASTER                0
 
 #endif      /* MODBUS_MASTER */
+
+#if defined RS485_MASTER_EN || defined RS485_SLAVE_EN
+#define RS485_EN
+#endif
 
 /* calculate UART buffer length */
 #if IW_COUNT > QW_COUNT

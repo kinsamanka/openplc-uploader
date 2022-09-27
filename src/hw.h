@@ -1,6 +1,8 @@
 #ifndef HW_H
 #define HW_H
 
+#include "config.h"
+
 #if defined BOARD_UNO
 
 /******************PINOUT CONFIGURATION*******************
@@ -10,10 +12,22 @@ Analog In: A0, A1, A2, A3, A4, A5   (%IW0 - %IW5)
 Analog Out: 9, 10, 11               (%QW0 - %QW2)
 **********************************************************/
 
+#ifdef RS485_EN
+#define RS485_EN_PIN                2
+#define DIN                         {3, 4, 5, 6}
+#else
 #define DIN                         {2, 3, 4, 5, 6}
+#endif
+
 #define AIN                         {A0, A1, A2, A3, A4, A5}
 #define DOUT                        {7, 8, 12, 13}
 #define AOUT                        {9, 10, 11}
+
+#if defined(__AVR_ATmega32U4__)
+#define UART_TX_COMPLETE            (UCSR1A & (1 << TXC1))
+#elif defined(__AVR_ATmega328P__)
+#define UART_TX_COMPLETE            (UCSR0A & (1 << TXC0))
+#endif
 
 #elif defined BOARD_MEGA_DUE
 
@@ -90,6 +104,14 @@ Analog Out: 6, 15                           (%QW0 - %QW1)
 
 #error "No BOARD defined!"
 
+#endif
+
+#if defined RS485_EN && !defined RS485_EN_PIN
+#error "RS485 is enabled but no defined EN pin!"
+#endif
+
+#if defined RS485_EN && !defined UART_TX_COMPLETE
+#error "RS485 is enabled but no uart tx complete test defined!"
 #endif
 
 #endif
