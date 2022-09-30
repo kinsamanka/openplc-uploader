@@ -39,7 +39,7 @@
 #endif
 
 #ifndef SLAVE_BAUD_RATE
-#define SLAVE_BAUD_RATE         115200
+#define SLAVE_BAUD_RATE         57600
 #endif
 
 #ifndef MBSLAVE_IFACE
@@ -63,7 +63,7 @@
 #endif
 
 #ifndef MASTER_BAUD_RATE
-#define MASTER_BAUD_RATE        115200
+#define MASTER_BAUD_RATE        57600
 #endif
 
 #define MB_MASTER_TIMEOUT       50
