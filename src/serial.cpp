@@ -7,8 +7,6 @@
 
 void serial_init(void)
 {
-#if MBSLAVE || MBMASTER
-    modbus_init();
 #if MBSLAVE
     MBSLAVE_IFACE.begin(SLAVE_BAUD_RATE);
     MBSLAVE_IFACE.flush();
@@ -20,7 +18,6 @@ void serial_init(void)
 #ifdef RS485_EN
     pinMode(RS485_EN_PIN, OUTPUT);
     digitalWrite(RS485_EN_PIN, 0);
-#endif
 #endif
 }
 
@@ -34,7 +31,7 @@ void serial_slave_task(unsigned long dt)
 #ifdef RS485_SLAVE_EN
         TX_WAIT,
 #endif
-   } state = INIT;
+    } state = INIT;
 
     static uint8_t data[UART_BUF_LEN];
 
@@ -44,6 +41,7 @@ void serial_slave_task(unsigned long dt)
         .pos = 0,
         .size = UART_BUF_LEN,
         .last_dt = 0,
+        .rtu = 1,
     };
 
     switch (state) {

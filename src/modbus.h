@@ -10,6 +10,7 @@ struct modbus_buf {
     size_t pos;
     size_t size;
     unsigned long last_dt;
+    const uint8_t rtu;
 };
 
 #if MBMASTER

@@ -103,4 +103,40 @@
 #define MAX_RESPONSE            UART_BUF_LEN
 #endif
 
+#ifdef MODBUS_WIFI
+#define MBWIFI                  1
+#else
+#define MBWIFI                  0
+#endif
+
+/*
+
+   Setup the following defines to configure WIFI IP settings:
+
+    #define CONFIG_WIFI_IP          { 10, 1, 1, 2 }
+    #define CONFIG_WIFI_GW          { 10, 1, 1, 1 }
+    #define CONFIG_WIFI_DNS         { 10, 1, 1, 1 }
+
+*/
+
+#ifndef CONFIG_WIFI_SUBNET
+#define CONFIG_WIFI_SUBNET      { 255, 255, 255, 0 }
+#endif
+
+#ifndef CONFIG_SSID
+#define CONFIG_SSID             "OpenPLC"
+#endif
+
+#ifndef CONFIG_WIFI_PASS
+#define CONFIG_WIFI_PASS        "wifiPassword"
+#endif
+
+#ifndef CONFIG_MODBUS_PORT
+#define CONFIG_MODBUS_PORT      502
+#endif
+
+#ifndef CONFIG_MAX_TCP_CONN
+#define CONFIG_MAX_TCP_CONN     4
+#endif
+
 #endif

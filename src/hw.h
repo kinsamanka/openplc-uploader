@@ -100,6 +100,20 @@ Analog Out: 6, 15                           (%QW0 - %QW1)
 #define DOUT                        {7, 8, 9, 10, 11, 12}
 #define AOUT                        {6, 15}
 
+#elif defined BOARD_ESP8266
+
+/******************PINOUT CONFIGURATION***********************
+Digital In:  D4, D5, D6, D7                 (%IX0.0 - %IX0.3)
+Digital Out: D0, D1, D2, D3                 (%QX0.0 - %QX0.3)
+Analog In: A0                               (%IW0)
+Analog Out: D8                              (%QW0)
+**************************************************************/
+
+#define DIN                         {2, 14, 12, 13}
+#define AIN                         {A0}
+#define DOUT                        {16, 5, 4, 0}
+#define AOUT                        {15}
+
 #else
 
 #error "No BOARD defined!"

@@ -176,8 +176,14 @@ int process_master_request(struct modbus_buf *buf)
 
     if (buf->len) {
         ModbusErrorInfo err;
-        err = modbusParseRequestRTU(&slave, SLAVE_ADDRESS,
-                                    (const uint8_t *)buf->data, buf->len);
+
+        if (buf->rtu) {
+            err = modbusParseRequestRTU(&slave, SLAVE_ADDRESS,
+                                        (const uint8_t *)buf->data, buf->len);
+        } else {
+            err = modbusParseRequestTCP(&slave,
+                                        (const uint8_t *)buf->data, buf->len);
+        }
 
         if (modbusIsOk(err)) {
 

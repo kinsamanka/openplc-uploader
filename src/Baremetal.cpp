@@ -1,7 +1,9 @@
 #include <Arduino.h>
 
 #include "openplc.h"
+#include "modbus.h"
 #include "serial.h"
+#include "wifi.h"
 
 unsigned long __tick = 0;
 
@@ -16,10 +18,17 @@ void setup()
     scan_cycle = (uint32_t) (common_ticktime__ / 1000000);
     timer_ms = millis() + scan_cycle;
 
-    serial_init();
+    if (MBSLAVE || MBMASTER || MBWIFI)
+        modbus_init();
+
+    if (MBSLAVE || MBMASTER)
+        serial_init();
+
+    if (MBWIFI)
+        wifi_init();
 }
 
-#define NUM_TASKS       (MBMASTER + MBSLAVE)
+#define NUM_TASKS       (MBMASTER + MBSLAVE + MBWIFI)
 
 void loop()
 {
@@ -42,7 +51,10 @@ void loop()
 #if MBMASTER
         serial_master_task,
 #endif
-    };
+#if MBWIFI
+        wifi_slave_task,
+#endif
+   };
 
     if (dt >= timer_ms) {
 
@@ -53,7 +65,7 @@ void loop()
         updateOutputBuffers();
         updateTime();
 
-    } else {
+    } else if (NUM_TASKS) {
         if (cycle--)
             tasks[cycle](dt);
         else
