@@ -121,6 +121,22 @@ Analog Out: 6, 15                           (%QW0 - %QW1)
 #define DOUT                        {7, 8, 9, 10, 11, 12}
 #define AOUT                        {6, 15}
 
+#elif defined BOARD_XIAO
+
+/******************PINOUT CONFIGURATION***********************
+Digital In:  7, 8, 9, 10                    (%IX0.0 - %IX0.3)
+Digital Out: 3, 4, 5, 6, 13                 (%QX0.0 - %QX0.4)
+Analog In: A1, A2                           (%IW0 - %IW1)
+Analog Out: A0                              (%QW0)
+
+Note: Pin 13 is the onboard LED
+**************************************************************/
+
+#define DIN                         {7, 8, 9, 10}
+#define DOUT                        {3, 4, 5, 6, 13}
+#define AIN                         {A1, A2}
+#define AOUT                        {A0}
+
 #elif defined BOARD_ESP8266
 
 /******************PINOUT CONFIGURATION***********************
