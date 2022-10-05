@@ -33,7 +33,7 @@ bc = env.BoardConfig()
 rom_size = f"{bc.get('upload.maximum_size') // 1024}K"
 ram_size = f"{bc.get('upload.maximum_ram_size') // 1024}K"
 
-env.Append(CCFLAGS=[f"-DFLASH_SIZE={bc.get('upload.maximum_size')}",
+env.Append(CCFLAGS=[f"-DMAX_FLASH_SIZE={bc.get('upload.maximum_size')}",
                     f"-DRAM_SIZE={bc.get('upload.maximum_ram_size')}",
                     f"-DRAM_{ram_size}"])
 
