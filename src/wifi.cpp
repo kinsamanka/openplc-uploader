@@ -5,8 +5,10 @@
 
 #if MBWIFI
 
-#ifdef BOARD_ESP8266
+#if defined USE_ESP8266
 #include <ESP8266WiFi.h>
+#elif defined USE_WIFININA
+#include <WiFiNINA.h>
 #else
 #include <WiFi.h>
 #endif
@@ -27,7 +29,7 @@ void wifi_init(void)
     const uint8_t ip[] = CONFIG_WIFI_IP;
 #if defined CONFIG_WIFI_GW
     const uint8_t gw[] = CONFIG_WIFI_GW;
-#else
+#elif !defined USE_WIFININA
     const uint8_t gw[] = CONFIG_WIFI_IP;
 #endif
 #if defined CONFIG_WIFI_SUBNET
@@ -39,7 +41,17 @@ void wifi_init(void)
     const uint8_t dns[] = CONFIG_WIFI_DNS;
 #endif
 
-#if defined CONFIG_WIFI_IP && defined CONFIG_WIFI_DNS
+#if defined USE_WIFININA && defined CONFIG_WIFI_IP && defined CONFIG_WIFI_DNS \
+    && defined CONFIG_WIFI_GW && defined CONFIG_WIFI_SUBNET
+    WiFi.config(ip, dns, gw, sn);
+#elif defined USE_WIFININA && defined CONFIG_WIFI_IP && defined CONFIG_WIFI_DNS \
+      && defined CONFIG_WIFI_GW
+    WiFi.config(ip, dns, gw);
+#elif defined USE_WIFININA && defined CONFIG_WIFI_IP && defined CONFIG_WIFI_DNS
+    WiFi.config(ip, dns);
+#elif defined USE_WIFININA && defined CONFIG_WIFI_IP
+    WiFi.config(ip);
+#elif defined CONFIG_WIFI_IP && defined CONFIG_WIFI_DNS
     WiFi.config(ip, gw, sn, dns);
 #elif defined CONFIG_WIFI_IP
     WiFi.config(ip, gw, sn);

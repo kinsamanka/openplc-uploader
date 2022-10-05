@@ -77,7 +77,7 @@ Pins used for SPI: 50-53
 #define AIN                         {A0, A1, A2, A3, A4, A5, A6, A7}
 #define AOUT                        {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
-#elif defined BOARD_NANO_EVERY || defined BOARD_WIFININA
+#elif defined BOARD_NANO
 
 /******************PINOUT CONFIGURATION***********************
 Digital In:  2, 3, 4, 5, 6                  (%IX0.0 - %IX0.4)

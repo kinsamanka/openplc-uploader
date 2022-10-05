@@ -104,6 +104,15 @@
 #endif
 
 #ifdef MODBUS_WIFI
+
+#ifdef BOARD_ESP8266
+#define USE_ESP8266
+#endif
+
+#if defined BOARD_MKR || defined BOARD_NANO
+#define USE_WIFININA
+#endif
+
 #define MBWIFI                  1
 #else
 #define MBWIFI                  0
