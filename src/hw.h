@@ -107,6 +107,20 @@ Analog Out:  25, 26                         (%QW0 - %QW1)
 #define AIN                         {34, 35, 36, 39}
 #define AOUT                        {25, 26}
 
+#elif defined BOARD_ESP32_CAM
+
+/******************PINOUT CONFIGURATION**************************
+Digital In:  00, 02, 12, 16, 03             (%IX0.0 - %IX0.4)
+Digital Out: 04, 13  14, 15, 01             (%QX0.0 - %QX0.4)
+Analog In:
+Analog Out:
+*****************************************************************/
+
+#define DIN                         {0, 2, 12, 16, 3}
+#define DOUT                        {4, 13, 14, 15, 1}
+#define AIN                         {}
+#define AOUT                        {}
+
 #elif defined BOARD_MKR
 
 /******************PINOUT CONFIGURATION***********************
