@@ -109,6 +109,30 @@
 #define MBWIFI                  0
 #endif
 
+#ifdef MODBUS_ETH
+#define MBETH                   1
+#else
+#define MBETH                   0
+#endif
+
+/*
+
+   Setup the following defines to configure IP settings:
+
+    #define CONFIG_IP               { 10, 1, 1, 2 }
+    #define CONFIG_GW               { 10, 1, 1, 1 }
+    #define CONFIG_DNS              { 10, 1, 1, 1 }
+
+*/
+
+#ifndef CONFIG_MAC
+#define CONFIG_MAC              { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }
+#endif
+
+#ifndef CONFIG_SUBNET
+#define CONFIG_SUBNET           { 255, 255, 255, 0 }
+#endif
+
 /*
 
    Setup the following defines to configure WIFI IP settings:

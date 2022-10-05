@@ -4,6 +4,7 @@
 #include "modbus.h"
 #include "serial.h"
 #include "wifi.h"
+#include "ethernet.h"
 
 unsigned long __tick = 0;
 
@@ -18,7 +19,7 @@ void setup()
     scan_cycle = (uint32_t) (common_ticktime__ / 1000000);
     timer_ms = millis() + scan_cycle;
 
-    if (MBSLAVE || MBMASTER || MBWIFI)
+    if (MBSLAVE || MBMASTER || MBWIFI || MBETH)
         modbus_init();
 
     if (MBSLAVE || MBMASTER)
@@ -26,9 +27,12 @@ void setup()
 
     if (MBWIFI)
         wifi_init();
+
+    if (MBETH)
+        eth_init();
 }
 
-#define NUM_TASKS       (MBMASTER + MBSLAVE + MBWIFI)
+#define NUM_TASKS       (MBMASTER + MBSLAVE + MBWIFI + MBETH)
 
 void loop()
 {
@@ -53,6 +57,9 @@ void loop()
 #endif
 #if MBWIFI
         wifi_slave_task,
+#endif
+#if MBETH
+        eth_slave_task,
 #endif
    };
 
