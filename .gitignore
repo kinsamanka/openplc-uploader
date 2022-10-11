@@ -6,3 +6,4 @@
 .*.sw*
 src/generated
 build
+.cfg

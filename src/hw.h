@@ -15,20 +15,16 @@ Pins used for SPI: 10-13
 
  **********************************************************/
 
-#ifdef RS485_EN
-#define RS485_EN_PIN                2
-#define DIN                         {3, 4, 5, 6}
-#else
+#ifndef DIN
 #define DIN                         {2, 3, 4, 5, 6}
 #endif
-
-#define AIN                         {A0, A1, A2, A3, A4, A5}
-
-#ifdef MODBUS_ETH
-#define DOUT                        {7, 8}
-#define AOUT                        {9}
-#else
+#ifndef DOUT
 #define DOUT                        {7, 8, 12, 13}
+#endif
+#ifndef AIN
+#define AIN                         {A0, A1, A2, A3, A4, A5}
+#endif
+#ifndef AOUT
 #define AOUT                        {9, 10, 11}
 #endif
 
@@ -58,24 +54,23 @@ Pins used for SPI: 50-53
 
 *********************************************************************/
 
-#ifdef MODBUS_ETH
-#define DIN                         {62, 63, 64, 65, 66, 67, 68, 69, 22, 24, \
-                                     26, 28, 30, 32, 34, 36, 38, 40, 42, 44, \
-                                     46, 48}
-#define DOUT                        {14, 15, 16, 17, 18, 19, 20, 21, 23, 25, \
-                                     27, 29, 31, 33, 35, 37, 39, 41, 43, 45, \
-                                     47, 49}
-#else
+#ifndef DIN
 #define DIN                         {62, 63, 64, 65, 66, 67, 68, 69, 22, 24, \
                                      26, 28, 30, 32, 34, 36, 38, 40, 42, 44, \
                                      46, 48, 50, 52}
+#endif
+#ifndef DOUT
 #define DOUT                        {14, 15, 16, 17, 18, 19, 20, 21, 23, 25, \
                                      27, 29, 31, 33, 35, 37, 39, 41, 43, 45, \
                                      47, 49, 51, 53}
 #endif
 
+#ifndef AIN
 #define AIN                         {A0, A1, A2, A3, A4, A5, A6, A7}
+#endif
+#ifndef AOUT
 #define AOUT                        {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+#endif
 
 #elif defined BOARD_NANO
 
@@ -86,10 +81,18 @@ Analog In: A1, A2, A3, A4, A5, A6, A7       (%IW0 - %IW6)
 Analog Out: 9, 14                           (%QW0 - %QW1)
 **************************************************************/
 
+#ifndef DIN
 #define DIN                         {2, 3, 4, 5, 6}
+#endif
+#ifndef AIN
 #define AIN                         {15, 16, 17, 18, 19, 20, 21}
+#endif
+#ifndef DOUT
 #define DOUT                        {7, 8, 10, 11, 12, 13}
+#endif
+#ifndef AOUT
 #define AOUT                        {9, 14}
+#endif
 
 #elif defined BOARD_ESP32
 
@@ -102,10 +105,18 @@ Analog In:   34, 35, 36, 39                 (%IW0 - %IW2)
 Analog Out:  25, 26                         (%QW0 - %QW1)
 *****************************************************************/
 
+#ifndef DIN
 #define DIN                         {17, 18, 19, 21, 22, 23, 27, 32, 33}
+#endif
+#ifndef DOUT
 #define DOUT                        {01, 02, 03, 04, 05, 12, 13, 14, 15, 16}
+#endif
+#ifndef AIN
 #define AIN                         {34, 35, 36, 39}
+#endif
+#ifndef AOUT
 #define AOUT                        {25, 26}
+#endif
 
 #elif defined BOARD_ESP32_CAM
 
@@ -116,10 +127,18 @@ Analog In:
 Analog Out:
 *****************************************************************/
 
+#ifndef DIN
 #define DIN                         {0, 2, 12, 16, 3}
+#endif
+#ifndef DOUT
 #define DOUT                        {4, 13, 14, 15, 1}
+#endif
+#ifndef AIN
 #define AIN                         {}
+#endif
+#ifndef AOUT
 #define AOUT                        {}
+#endif
 
 #elif defined BOARD_MKR
 
@@ -130,10 +149,18 @@ Analog In: A1, A2, A3, A4, A5, A6           (%IW0 - %IW5)
 Analog Out: 6, 15                           (%QW0 - %QW1)
 **************************************************************/
 
+#ifndef DIN
 #define DIN                         {0, 1, 2, 3, 4, 5}
+#endif
+#ifndef AIN
 #define AIN                         {A1, A2, A3, A4, A5, A6}
+#endif
+#ifndef DOUT
 #define DOUT                        {7, 8, 9, 10, 11, 12}
+#endif
+#ifndef AOUT
 #define AOUT                        {6, 15}
+#endif
 
 #elif defined BOARD_XIAO
 
@@ -146,10 +173,18 @@ Analog Out: A0                              (%QW0)
 Note: Pin 13 is the onboard LED
 **************************************************************/
 
+#ifndef DIN
 #define DIN                         {7, 8, 9, 10}
+#endif
+#ifndef DOUT
 #define DOUT                        {3, 4, 5, 6, 13}
+#endif
+#ifndef AIN
 #define AIN                         {A1, A2}
+#endif
+#ifndef AOUT
 #define AOUT                        {A0}
+#endif
 
 #elif defined BOARD_ESP8266
 
@@ -160,10 +195,18 @@ Analog In: A0                               (%IW0)
 Analog Out: D8                              (%QW0)
 **************************************************************/
 
+#ifndef DIN
 #define DIN                         {2, 14, 12, 13}
+#endif
+#ifndef AIN
 #define AIN                         {A0}
+#endif
+#ifndef DOUT
 #define DOUT                        {16, 5, 4, 0}
+#endif
+#ifndef AOUT
 #define AOUT                        {15}
+#endif
 
 #else
 

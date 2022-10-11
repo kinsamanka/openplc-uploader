@@ -4,15 +4,6 @@
 #define NUM(a) (sizeof(a) / sizeof(*a))
 #define ct_assert(e) ((void)sizeof(char[1 - 2*!(e)]))
 
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__)
-
-#define HOLDING_REG_COUNT       8
-#define INPUT_REG_COUNT         8
-#define COIL_COUNT              8
-#define DISCRETE_COUNT          8
-
-#endif
-
 #ifndef HOLDING_REG_COUNT
 #define HOLDING_REG_COUNT       16
 #endif
@@ -22,11 +13,11 @@
 #endif
 
 #ifndef COIL_COUNT
-#define COIL_COUNT              24
+#define COIL_COUNT              16
 #endif
 
 #ifndef DISCRETE_COUNT
-#define DISCRETE_COUNT          24
+#define DISCRETE_COUNT          16
 #endif
 
 #define QW_COUNT                HOLDING_REG_COUNT
@@ -68,7 +59,7 @@
 
 #define MB_MASTER_TIMEOUT       50
 
-#else
+#else       /* MODBUS_MASTER */
 
 #define MBMASTER                0
 
@@ -114,9 +105,12 @@
 #endif
 
 #define MBWIFI                  1
-#else
+
+#else       /* MODBUS_WIFI */
+
 #define MBWIFI                  0
-#endif
+
+#endif      /* MODBUS_WIFI */
 
 #ifdef MODBUS_ETH
 #define MBETH                   1

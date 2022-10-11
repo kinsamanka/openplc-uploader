@@ -1,12 +1,15 @@
-from os import makedirs
+from os import makedirs, environ
 from pathlib import PureWindowsPath
 from shutil import rmtree
 from subprocess import check_output
 import platform
 
+win = platform.system() == "Windows"
+
+
 def skip_from_build(node):
     n = node.get_path()
-    if platform.system() == "Windows":
+    if win:
         n = PureWindowsPath(n).as_posix()
 
     # filter UIP src and matiec dir
@@ -17,6 +20,7 @@ def skip_from_build(node):
     # otherwise allow all
     return node
 
+
 def fix_pous_c(node):
     if "POUS" not in node.name:
         return node
@@ -25,6 +29,7 @@ def fix_pous_c(node):
         node,
         CCFLAGS=env["CCFLAGS"] + ["-include", "generated/POUS.h"]
     )
+
 
 Import("env")
 
@@ -49,13 +54,21 @@ env.AddBuildMiddleware(skip_from_build, "*")
 
 env.AddBuildMiddleware(fix_pous_c)
 
-print("Compiling plc_prog.st ...")
+src = environ.get('OPENPLC_SRC')
+if not src:
+    src = "plc_prog.st"
+
+print(f"Compiling {src} ...")
 
 gdir = f"{env['PROJECT_SRC_DIR']}/generated"
 rmtree(gdir, ignore_errors=True)
 makedirs(gdir, exist_ok=True)
 
 path = env.PioPlatform().get_package_dir("tool-matiec")
-cmd = "iec2c.exe" if platform.system() == "Windows" else "iec2c"
+if win:
+    path = PureWindowsPath(path).as_posix()
 
-check_output(f"{path}/bin/{cmd} -l -I lib/matiec/lib -T src/generated plc_prog.st", shell=True)
+c = f'"{path}/bin/iec2c.exe"' if win else f'{path}/bin/iec2c'
+
+cmd = [c, '-l', '-I', 'lib/matiec/lib', '-T', 'src/generated', f'"{src}"']
+check_output(' '.join(cmd), shell=True)

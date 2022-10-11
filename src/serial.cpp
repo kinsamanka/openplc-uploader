@@ -5,6 +5,8 @@
 #include "modbus.h"
 #include "serial.h"
 
+/* TODO: slave rs485 enable pin */
+
 void serial_init(void)
 {
 #if MBSLAVE
@@ -85,7 +87,7 @@ void serial_slave_task(unsigned long dt)
     case TX_WAIT:
         if (UART_TX_COMPLETE) {
 
-            mb_master_buf.last_dt = dt;
+            slave_buf.last_dt = dt;
             digitalWrite(RS485_EN_PIN, 0);
 
             state = RX;
