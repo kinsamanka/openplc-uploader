@@ -64,11 +64,14 @@ gdir = f"{env['PROJECT_SRC_DIR']}/generated"
 rmtree(gdir, ignore_errors=True)
 makedirs(gdir, exist_ok=True)
 
-path = env.PioPlatform().get_package_dir("tool-matiec")
+path = f"{env['PROJECT_DIR']}/lib/matiec"
 if win:
     path = PureWindowsPath(path).as_posix()
 
 c = f'"{path}/bin/iec2c.exe"' if win else f'{path}/bin/iec2c'
 
 cmd = [c, '-l', '-I', 'lib/matiec/lib', '-T', 'src/generated', f'"{src}"']
+
+print(f"    {' '.join(cmd)}")
+
 check_output(' '.join(cmd), shell=True)
