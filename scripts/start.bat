@@ -34,6 +34,7 @@ echo ## Installing miniconda environment to %CONDA_DIR%, please wait...
 %CONDA_FNAME% /InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /S /D=%CONDA_DIR%
 del %CONDA_FNAME%
 echo ## basic miniconda installed
+call "%CONDA_DIR%\condabin\conda" update -n base -yc defaults --all
 call "%CONDA_DIR%\condabin\conda" activate base 
 echo ## installing required packages
 call conda install -y -c conda-forge wxpython platformio git pypubsub
