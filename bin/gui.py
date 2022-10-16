@@ -995,7 +995,7 @@ class Uploader(wx.Frame):
         b'qVuCvCmGWvn1Atmpirf+0BsiWkvpYAEPHQCrTKhNqEHQZ9enLmq7RSPNX2LziSk36i6vAAAA'
         b'AElFTkSuQmCC')
 
-    def __init__(self, parent, boards, title, cfg, cwd):
+    def __init__(self, parent, boards, title, cfg, cwd, conn):
         super().__init__(parent, title=title)
 
         # disable background on Windows
@@ -1005,6 +1005,7 @@ class Uploader(wx.Frame):
 
         self.cfg = cfg
         self.cwd = cwd
+        self.conn = conn
 
         self.worker = None
 
@@ -1014,10 +1015,9 @@ class Uploader(wx.Frame):
 
         self._ports = []
 
-        # timer task to check for availabe serial ports
         self.mili = 1000
         self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.check_ports, self.timer)
+        self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
         self.timer.Start(self.mili)
 
         self.init_ui()
@@ -1118,7 +1118,7 @@ class Uploader(wx.Frame):
         panel.SetSizer(sizer)
         sizer.Fit(self)
 
-    def check_ports(self, e):
+    def on_timer(self, e):
         ports = [p.device for p in list_ports.comports()]
         if ports:
             if (set(ports) != set(self._ports)):
@@ -1140,6 +1140,16 @@ class Uploader(wx.Frame):
             self.cb_2.Clear()
             self.cb_2.SetSelection(1)
             self.bt_3.SetLabel('Compile')
+
+        if self.conn and self.conn.poll():
+            try:
+                r = self.conn.recv()
+            except EOFError:
+                # OpenPLC editor has terminated
+                self.Close(True)
+            else:
+                if isinstance(r, dict) and 'src' in r:
+                    self.fp_0.SetPath(r['src'])
 
         self.timer.Start(self.mili)
 
@@ -1245,6 +1255,24 @@ class Uploader(wx.Frame):
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', default='0')
+
+    conn = None
+
+    try:
+        port = int(parser.parse_args().port)
+    except ValueError:
+        port = 0
+
+    if port:
+        from multiprocessing.connection import Client
+        try:
+            conn = Client(('localhost', port), authkey=b'openplc')
+        except BaseException:
+            conn = None
 
     from pathlib import Path
     from configparser import ConfigParser
@@ -1288,7 +1316,8 @@ def main():
                       })
 
     app = wx.App()
-    ex = Uploader(None, boards=a, cfg=str(c), cwd=d, title='Uploader')
+    ex = Uploader(None, boards=a, cfg=str(c), cwd=d, title='Uploader',
+                  conn=conn)
     ex.Show()
     app.MainLoop()
 
