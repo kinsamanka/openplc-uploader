@@ -1144,7 +1144,7 @@ class Uploader(wx.Frame):
         if self.conn and self.conn.poll():
             try:
                 r = self.conn.recv()
-            except EOFError:
+            except (EOFError, ConnectionResetError) as e:
                 # OpenPLC editor has terminated
                 self.Close(True)
             else:
