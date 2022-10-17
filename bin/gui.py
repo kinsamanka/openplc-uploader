@@ -1362,23 +1362,28 @@ def main():
             if 'board_uart' in cp[i]:
                 count = int(cp[i]['board_uart'])
 
-            l = {}
+            m = {'discrete': cp.getlist(hw, 'din'),
+                 'coil': cp.getlist(hw, 'dout'),
+                 'input': cp.getlist(hw, 'ain'),
+                 'holding': cp.getlist(hw, 'aout')}
+
+            # set minimum to 4 registers
             for b in ('coil', 'discrete', 'holding', 'input'):
-                l[f'{b}_count'] = '16'
-                if f'{b}_count' in cp[hw]:
-                    l[f'{b}_count'] = cp[hw][f'{b}_count']
+                m[f'{b}_count'] = '4'
+                if len(m[b]) > 4:
+                    m[f'{b}_count'] = str(len(m[b]))
 
             a.append({'id': i,
                       'name': cp[i]['board_name'],
-                      'din': cp.getlist(hw, 'din'),
-                      'dout': cp.getlist(hw, 'dout'),
-                      'ain': cp.getlist(hw, 'ain'),
-                      'aout': cp.getlist(hw, 'aout'),
+                      'din': m['discrete'],
+                      'dout': m['coil'],
+                      'ain': m['input'],
+                      'aout': m['holding'],
                       'uart_count': count,
-                      'coil_count': l['coil_count'],
-                      'discrete_count': l['discrete_count'],
-                      'holding_count': l['holding_count'],
-                      'input_count': l['input_count'],
+                      'coil_count': m['coil_count'],
+                      'discrete_count': m['discrete_count'],
+                      'holding_count': m['holding_count'],
+                      'input_count': m['input_count'],
                       })
 
     app = wx.App()
