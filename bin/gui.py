@@ -712,6 +712,7 @@ class MBPanel(wx.Panel):
         super().__init__(parent)
 
         pub.subscribe(self.on_config_change, "config_change")
+        pub.subscribe(self.on_io_change, "io_change")
 
         self.en = False
 
@@ -722,12 +723,11 @@ class MBPanel(wx.Panel):
             'input_count': '',
         }
 
-        self.current = {
-            'coil_count': '',
-            'discrete_count': '',
-            'holding_count': '',
-            'input_count': '',
-        }
+        _font = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
+                        wx.FONTWEIGHT_NORMAL, 0, "Monospace")
+
+        self.current = self.default.copy()
+        self.io_changes = {}
 
         sz_0 = wx.GridBagSizer(5, 5)
 
@@ -736,42 +736,78 @@ class MBPanel(wx.Panel):
         sz_0.Add(self.cb_override, (0, 0), (1, 1), wx.ALIGN_CENTER_VERTICAL, 0)
 
         st_0 = wx.StaticText(self, -1, "Coils")
-        sz_0.Add(st_0, (1, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+        sz_0.Add(st_0, (2, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+
+        self.st_coil = wx.StaticText(self, -1, "(%QX0.0 - %QX1.0)")
+        self.st_coil.SetFont(_font)
+        sz_0.Add(self.st_coil, (2, 2), (1, 1), wx.ALIGN_LEFT | wx.LEFT, 10)
 
         self.tc_coil = wx.TextCtrl(self, name='coil')
         self.tc_coil.Enable(False)
         self.tc_coil.Bind(wx.EVT_TEXT, self.on_inputs)
-        sz_0.Add(self.tc_coil, (1, 1), (1, 1))
+        sz_0.Add(self.tc_coil, (2, 1), (1, 1))
 
         st_1 = wx.StaticText(self, -1, "Discrete Inputs")
-        sz_0.Add(st_1, (2, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+        sz_0.Add(st_1, (1, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+
+        self.st_discrete = wx.StaticText(self, -1, "(%IX0.0 - %IX1.0)")
+        self.st_discrete.SetFont(_font)
+        sz_0.Add(self.st_discrete, (1, 2), (1, 1), wx.ALIGN_LEFT | wx.LEFT, 10)
 
         self.tc_discrete = wx.TextCtrl(self, name='discrete')
         self.tc_discrete.Enable(False)
         self.tc_discrete.Bind(wx.EVT_TEXT, self.on_inputs)
-        sz_0.Add(self.tc_discrete, (2, 1), (1, 1))
+        sz_0.Add(self.tc_discrete, (1, 1), (1, 1))
 
         st_2 = wx.StaticText(self, -1, "Holding Registers")
-        sz_0.Add(st_2, (3, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+        sz_0.Add(st_2, (4, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+
+        self.st_holding = wx.StaticText(self, -1, "(%QW0 - %QW1)")
+        self.st_holding.SetFont(_font)
+        sz_0.Add(self.st_holding, (4, 2), (1, 1), wx.ALIGN_LEFT | wx.LEFT, 10)
 
         self.tc_holding = wx.TextCtrl(self, name='holding')
         self.tc_holding.Enable(False)
         self.tc_holding.Bind(wx.EVT_TEXT, self.on_inputs)
-        sz_0.Add(self.tc_holding, (3, 1), (1, 1))
+        sz_0.Add(self.tc_holding, (4, 1), (1, 1))
 
         st_3 = wx.StaticText(self, -1, "Input Registers")
-        sz_0.Add(st_3, (4, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+        sz_0.Add(st_3, (3, 0), (1, 1), wx.ALIGN_RIGHT, 0)
+
+        self.st_input = wx.StaticText(self, -1, "(%IW0 - %IW1)")
+        self.st_input.SetFont(_font)
+        sz_0.Add(self.st_input, (3, 2), (1, 1), wx.ALIGN_LEFT | wx.LEFT, 10)
 
         self.tc_input = wx.TextCtrl(self, name='input')
         self.tc_input.Enable(False)
         self.tc_input.Bind(wx.EVT_TEXT, self.on_inputs)
-        sz_0.Add(self.tc_input, (4, 1), (1, 1))
+        sz_0.Add(self.tc_input, (3, 1), (1, 1))
 
         self.SetSizer(sz_0)
 
+    def _update(self, l):
+        if l == 'coil':
+            n = self.current['coil_count']
+            x, y = divmod(int(n) - 1, 8)
+            self.tc_coil.ChangeValue(n)
+            self.st_coil.SetLabel(f"(%QX0.0 - %QX{x}.{y})")
+        elif l == 'discrete':
+            n = self.current['discrete_count']
+            x, y = divmod(int(n) - 1, 8)
+            self.tc_discrete.ChangeValue(n)
+            self.st_discrete.SetLabel(f"(%IX0.0 - %IX{x}.{y})")
+        elif l == 'holding':
+            n = self.current['holding_count']
+            self.tc_holding.ChangeValue(n)
+            self.st_holding.SetLabel(f"(%QW0 - %QW{int(n)-1})")
+        elif l == 'input':
+            n = self.current['input_count']
+            self.tc_input.ChangeValue(n)
+            self.st_input.SetLabel(f"(%IW0 - %IW{int(n)-1})")
+
     def update_inputs(self):
         for a in ('coil', 'discrete', 'holding', 'input'):
-            getattr(self, f'tc_{a}').ChangeValue(self.current[f'{a}_count'])
+            self._update(a)
 
     def enable_override(self, e):
         en = e.GetEventObject().GetValue()
@@ -784,6 +820,10 @@ class MBPanel(wx.Panel):
 
         if not en:
             self.current = self.default.copy()
+            if self.io_changes:
+                for a in self.default:
+                    if self.io_changes[a] > int(self.default[a]):
+                        self.current[a] = str(self.io_changes[a])
             self.update_inputs()
 
     def on_inputs(self, e):
@@ -799,6 +839,7 @@ class MBPanel(wx.Panel):
                 self.current[f'{n}_count'] = r
 
         o.SetInsertionPoint(m)
+        self._update(n)
 
     def on_config_change(self, msg):
         for a in ('coil', 'discrete', 'holding', 'input'):
@@ -807,6 +848,17 @@ class MBPanel(wx.Panel):
         if not self.en:
             self.current = self.default.copy()
             self.update_inputs()
+
+    def on_io_change(self, msg):
+        self.io_changes = msg
+        if not self.en:
+            for a in self.default:
+                if msg[a] > int(self.default[a]):
+                    self.current[a] = str(msg[a])
+                else:
+                    self.current[a] = self.default[a]
+            self.update_inputs()
+            self.io_changes = {}
 
     def get_values(self):
         return {
@@ -908,6 +960,13 @@ class IoPanel(wx.Panel):
         self.cur_config[n] = [i.strip()
                               for i in x.split(',') if i.strip() != '']
 
+        msg = {'discrete_count': len(self.cur_config['din']),
+               'coil_count': len(self.cur_config['dout']),
+               'input_count': len(self.cur_config['ain']),
+               'holding_count': len(self.cur_config['aout'])
+               }
+        pub.sendMessage("io_change", msg=msg)
+
     def update_inputs(self):
         for a in ('din', 'dout', 'ain', 'aout'):
             if a in self.cur_config:
@@ -931,6 +990,13 @@ class IoPanel(wx.Panel):
 
         if not en:
             self.exclude_en_pins()
+
+        msg = {'discrete_count': len(self.cur_config['din']),
+               'coil_count': len(self.cur_config['dout']),
+               'input_count': len(self.cur_config['ain']),
+               'holding_count': len(self.cur_config['aout'])
+               }
+        pub.sendMessage("io_change", msg=msg)
 
     def on_pin_change(self, msg):
         self._en_pins_update = msg['update']
@@ -1144,7 +1210,7 @@ class Uploader(wx.Frame):
         if self.conn and self.conn.poll():
             try:
                 r = self.conn.recv()
-            except (EOFError, ConnectionResetError) as e:
+            except (EOFError, ConnectionResetError) as err:
                 # OpenPLC editor has terminated
                 self.Close(True)
             else:
