@@ -208,6 +208,30 @@ Analog Out: D8                              (%QW0)
 #define AOUT                        {15}
 #endif
 
+#elif defined BOARD_STM32
+
+/******************PINOUT CONFIGURATION***********************
+Digital In:  PA8, PA11, PA12, PB3, PB4, PB5, (%IX0.0 - %IX0.7)
+             PB8, PB9, PB10
+Digital Out: PB11, PB12, PB13, PB14, PB15,   (%QX0.0 - %QX0.7)
+             PC13, PC14, PC15
+Analog In:   PA0, PA1, PA4, PA5, PA6, PA7    (%IW0 - %IW5)
+Analog Out:  PB0, PB1                        (%QW0 - %QW1)
+**************************************************************/
+
+#ifndef DIN
+#define DIN                         {PA8, PA11, PA12, PB3, PB4, PB5, PB8, PB9, PB10}
+#endif
+#ifndef AIN
+#define AIN                         {PA0, PA1, PA4, PA5, PA6, PA7}
+#endif
+#ifndef DOUT
+#define DOUT                        {PB11, PB12, PB13, PB14, PB15, PC13, PC14, PC15}
+#endif
+#ifndef AOUT
+#define AOUT                        {PB0, PB1}
+#endif
+
 #else
 
 #error "No BOARD defined!"
