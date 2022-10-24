@@ -786,24 +786,30 @@ class MBPanel(wx.Panel):
         self.SetSizer(sz_0)
 
     def _update(self, l):
+        def _conv(n):
+            try:
+                return int(n) - 1
+            except ValueError:
+                return 0
+
         if l == 'coil':
             n = self.current['coil_count']
-            x, y = divmod(int(n) - 1, 8)
+            x, y = divmod(_conv(n), 8)
             self.tc_coil.ChangeValue(n)
             self.st_coil.SetLabel(f"(%QX0.0 - %QX{x}.{y})")
         elif l == 'discrete':
             n = self.current['discrete_count']
-            x, y = divmod(int(n) - 1, 8)
+            x, y = divmod(_conv(n), 8)
             self.tc_discrete.ChangeValue(n)
             self.st_discrete.SetLabel(f"(%IX0.0 - %IX{x}.{y})")
         elif l == 'holding':
             n = self.current['holding_count']
             self.tc_holding.ChangeValue(n)
-            self.st_holding.SetLabel(f"(%QW0 - %QW{int(n)-1})")
+            self.st_holding.SetLabel(f"(%QW0 - %QW{_conv(n)})")
         elif l == 'input':
             n = self.current['input_count']
             self.tc_input.ChangeValue(n)
-            self.st_input.SetLabel(f"(%IW0 - %IW{int(n)-1})")
+            self.st_input.SetLabel(f"(%IW0 - %IW{_conv(n)})")
 
     def update_inputs(self):
         for a in ('coil', 'discrete', 'holding', 'input'):
