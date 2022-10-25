@@ -28,7 +28,8 @@ class WorkerThread(Thread):
         if e['port']:
             self.upload = True
             self.cmd.extend(['-t', 'upload'])
-            self.env['PLATFORMIO_UPLOAD_PORT'] = e['port']
+            if e['port'] != 'Default':
+                self.env['PLATFORMIO_UPLOAD_PORT'] = e['port']
 
         f = []
         t = e['mb']['current']['holding_count']
@@ -1137,9 +1138,8 @@ class Uploader(wx.Frame):
         st_4 = wx.StaticText(panel, label="Port")
         sizer.Add(st_4, (4, 0), flag=wx.LEFT, border=10)
 
-        self.cb_2 = wx.ComboBox(panel, choices=[''],
-                                style=wx.CB_DROPDOWN | wx.CB_READONLY |
-                                wx.CB_SORT)
+        self.cb_2 = wx.ComboBox(panel, choices=['', 'Default'],
+                                style=wx.CB_DROPDOWN | wx.CB_READONLY)
         self.cb_2.Bind(wx.EVT_COMBOBOX, self.on_port)
         sizer.Add(self.cb_2, (4, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
 
@@ -1197,21 +1197,28 @@ class Uploader(wx.Frame):
                 old = self.cb_2.GetValue()
                 self._ports = ports
                 self.cb_2.Clear()
+                self.cb_2.Append(['', 'Default'])
                 self.cb_2.Append(ports)
                 self.bt_3.SetLabel('Upload')
                 if old:
                     if old in ports:
                         self.cb_2.SetValue(old)
                     else:
-                        self.cb_2.SetSelection(-1)
-                        self.bt_3.SetLabel('Compile')
+                        self.cb_2.SetSelection(2)
+                        self.bt_3.SetLabel('Upload')
                 else:
                     self.cb_2.SetSelection(0)
         else:
             self._ports = []
-            self.cb_2.Clear()
-            self.cb_2.SetSelection(1)
-            self.bt_3.SetLabel('Compile')
+            if self.cb_2.GetCount() > 2:
+                old = self.cb_2.GetValue()
+                self.cb_2.Clear()
+                self.cb_2.Append(['', 'Default'])
+                if old == 'Default':
+                    self.cb_2.SetValue(old)
+                else:
+                    self.cb_2.SetSelection(0)
+                    self.bt_3.SetLabel('Compile')
 
         if self.conn and self.conn.poll():
             try:
@@ -1226,8 +1233,10 @@ class Uploader(wx.Frame):
         self.timer.Start(self.mili)
 
     def on_port(self, e):
-        if self.cb_2.GetValue():
+        if self.cb_2.GetSelection() > 0:
             self.bt_3.SetLabel('Upload')
+        else:
+            self.bt_3.SetLabel('Compile')
 
     def get_config(self):
         return {
