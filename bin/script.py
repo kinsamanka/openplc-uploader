@@ -45,9 +45,7 @@ env.Append(CCFLAGS=[f"-DMAX_FLASH_SIZE={bc.get('upload.maximum_size')}",
 # mark these libs as system to ignore GCC warnings
 env.Append(CCFLAGS=["-isystem", "lib/matiec/lib/C"])
 
-env.Append(CFLAGS=["-Wimplicit-function-declaration",
-                   "-Wmissing-prototypes",
-                   "-Wstrict-prototypes"])
+env.Append(CFLAGS=["-Wno-unused-but-set-variable"])
 
 # Register callback
 env.AddBuildMiddleware(skip_from_build, "*")
