@@ -19,7 +19,7 @@ class WorkerThread(Thread):
         self.cwd = cwd
         self.env = {}
         self.upload = False
-        self.cmd = ['pio', '--no-ansi', 'run', '-v', '-e', e['id']]
+        self.cmd = ['pio', '--no-ansi', 'run', '-e', e['id']]
 
         win = platform.system() == "Windows"
 
@@ -135,7 +135,14 @@ class WorkerThread(Thread):
             stdout=subprocess.PIPE,
         )
 
-        out = {'busy': True, 'data': [], 'index': -1}
+        out = {'busy': True, 'data': [], 'index': 1}
+
+        out['data'].append(f'{"":=>28} Environment Variables {"":=<28}')
+        for s in self.env['PLATFORMIO_BUILD_SRC_FLAGS'].split():
+            out['data'].append(s)
+            out['index'] += 1
+        out['data'].append(f'{"":=>36} Start {"":=<36}')
+
         while True:
             r = process.stdout.readline()
             if r == '' and process.poll() is not None:
