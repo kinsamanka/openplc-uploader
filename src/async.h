@@ -75,11 +75,6 @@ typedef enum ASYNC_EVT { ASYNC_INIT = 0, ASYNC_CONT = ASYNC_INIT, ASYNC_DONE = 1
 #define async_state unsigned _async_k
 
 /**
- * Core async structure, optional to use.
- */
-struct async { async_state; };
-
-/**
  * Mark the start of an async subroutine
  *
  * @param k The async state
