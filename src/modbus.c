@@ -17,9 +17,6 @@ extern uint8_t IX[];
 static ModbusSlave slave;
 static int slave_err = 0;
 
-#if MBMASTER
-static ModbusMaster master;
-
 uint8_t mb_run_master = 0;
 
 void *mb_head_master = NULL;
@@ -31,12 +28,6 @@ struct modbus_buf mb_master_buf = {
         .size = 0,
         .last_dt = 0,
 };
-
-static struct mb_buffer {
-    uint8_t *data;
-    size_t size;
-} mb_bits, mb_buf;
-#endif
 
 static ModbusError slave_allocator(ModbusBuffer * buffer, uint16_t size,
                                    void *context)
@@ -212,6 +203,11 @@ int process_master_request(struct modbus_buf *buf)
 }
 
 #if MBMASTER
+static struct mb_buffer {
+    uint8_t *data;
+    size_t size;
+} mb_bits, mb_buf;
+
 static ModbusError master_allocator(ModbusBuffer * buffer, uint16_t size,
                                     void *context)
 {
@@ -260,6 +256,8 @@ static ModbusError master_exception_CB(const ModbusMaster * status,
 
     return MODBUS_OK;
 }
+
+static ModbusMaster master;
 
 int create_master_request(struct mb_clients *mbc, struct modbus_buf *buf)
 {

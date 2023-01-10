@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "async.h"
 #include "openplc.h"
 #include "modbus.h"
 #include "serial.h"
@@ -10,6 +11,10 @@ unsigned long __tick = 0;
 
 unsigned long scan_cycle;
 unsigned long timer_ms = 0;
+
+struct task_state {
+    async_state;
+} pt;
 
 void setup()
 {
@@ -30,52 +35,48 @@ void setup()
 
     if (MBETH)
         eth_init();
+
+    async_init(&pt);
 }
 
-#define NUM_TASKS       (MBMASTER + MBSLAVE + MBWIFI + MBETH)
+static async run_tasks(unsigned long dt)
+{
+    async_begin(&pt);
+
+    while (1) {
+
+        if (MBSLAVE || MBMASTER) {
+            serial_task(dt);
+            async_yield;
+        }
+
+        if (MBWIFI) {
+            wifi_task();
+            async_yield;
+        }
+
+        if (MBETH) {
+            eth_task();
+            async_yield;
+        }
+    }
+
+    async_end;
+}
 
 void loop()
 {
     unsigned long dt = millis();
 
-    static int8_t cycle = NUM_TASKS;
-    typedef void (*f) (unsigned long);
-
-    /*
-     * this is an implementation of a simple
-     * multitasker, running a single task at
-     * every loop cycle
-     *
-     */
-
-    const f tasks[] = {
-#if MBSLAVE
-        serial_slave_task,
-#endif
-#if MBMASTER
-        serial_master_task,
-#endif
-#if MBWIFI
-        wifi_slave_task,
-#endif
-#if MBETH
-        eth_slave_task,
-#endif
-   };
-
     if (dt >= timer_ms) {
 
-        /* PLC task has priority */
         timer_ms += scan_cycle;
         updateInputBuffers();
         config_run__(__tick++);
         updateOutputBuffers();
         updateTime();
 
-    } else if (NUM_TASKS) {
-        if (cycle--)
-            tasks[cycle](dt);
-        else
-            cycle = NUM_TASKS;
     }
+
+    run_tasks(dt);
 }

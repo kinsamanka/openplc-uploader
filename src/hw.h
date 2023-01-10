@@ -29,9 +29,11 @@ Pins used for SPI: 10-13
 #endif
 
 #if defined(__AVR_ATmega32U4__)
-#define UART_TX_COMPLETE            (UCSR1A & (1 << TXC1))
+#define UART_SLAVE_TX_COMPLETE      (UCSR1A & (1 << TXC1))
+#define UART_MASTER_TX_COMPLETE     UART_SLAVE_TX_COMPLETE
 #elif defined(__AVR_ATmega328P__)
-#define UART_TX_COMPLETE            (UCSR0A & (1 << TXC0))
+#define UART_SLAVE_TX_COMPLETE      (UCSR0A & (1 << TXC0))
+#define UART_MASTER_TX_COMPLETE     UART_SLAVE_TX_COMPLETE
 #endif
 
 #elif defined BOARD_MEGA_DUE
@@ -238,12 +240,20 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 
 #endif
 
-#if defined RS485_EN && !defined RS485_EN_PIN
-#error "RS485 is enabled but no defined EN pin!"
+#if defined RS485_MASTER_EN && !defined RS485_MASTER_EN_PIN
+#error "RS485 Master is enabled but no defined EN pin!"
 #endif
 
-#if defined RS485_EN && !defined UART_TX_COMPLETE
-#error "RS485 is enabled but no uart tx complete test defined!"
+#if defined RS485_SLAVE_EN && !defined RS485_SLAVE_EN_PIN
+#error "RS485 Slave is enabled but no defined EN pin!"
+#endif
+
+#if defined RS485_SLAVE_EN && !defined UART_SLAVE_TX_COMPLETE
+#error "RS485 Slave is enabled but no uart tx complete test defined!"
+#endif
+
+#if defined RS485_MASTER_EN && !defined UART_MASTER_TX_COMPLETE
+#error "RS485 Master is enabled but no uart tx complete test defined!"
 #endif
 
 #endif

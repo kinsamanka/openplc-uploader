@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "async.h"
 #include "config.h"
 #include "hw.h"
 
@@ -11,9 +12,26 @@
 #include "ethernet.h"
 #include "modbus.h"
 
-EthernetServer server(CONFIG_MODBUS_PORT);
+static EthernetServer server(CONFIG_MODBUS_PORT);
+static uint8_t data[MAX_RESPONSE];
 
-EthernetClient clients[CONFIG_MAX_TCP_CONN];
+struct eth_slave_state {
+    async_state;
+    struct modbus_buf mb;
+    EthernetClient clients[CONFIG_MAX_TCP_CONN];
+};
+
+static struct eth_slave_state eth_slave_state = {
+    0,
+    .mb = {
+           .data = data,
+           .len = 0,
+           .pos = 0,
+           .size = MAX_RESPONSE,
+           .last_dt = 0,
+           .rtu = 0,
+           }
+};
 
 void eth_init(void)
 {
@@ -44,69 +62,58 @@ void eth_init(void)
 #endif
 
     server.begin();
+
+    async_init(&eth_slave_state);
 }
 
-void eth_slave_task(unsigned long dt)
+static async eth_slave(struct eth_slave_state *pt)
 {
-    (void) dt;
+    EthernetClient client;
+    uint8_t i;
 
-    static uint8_t cur = 0;
-    static uint8_t data[MAX_RESPONSE];
+    async_begin(pt);
 
-    static struct modbus_buf slave_buf = {
-        .data = data,
-        .len = 0,
-        .pos = 0,
-        .size = MAX_RESPONSE,
-        .last_dt = 0,
-        .rtu = 0,
-    };
+    while (1) {
+        client = server.accept();
 
-    static enum states {
-        RX,
-        TX,
-    } state = RX;
+        if (client) {
+            for (uint8_t i = 0; i < CONFIG_MAX_TCP_CONN; i++)
+                if (!pt->clients[i]) {
+                    pt->clients[i] = client;
+                    break;
+                }
+        }
 
-    EthernetClient client = server.accept();
+        async_yield;
 
-    if (client) {
-        for (uint8_t i = 0; i < CONFIG_MAX_TCP_CONN; i++)
-            if (!clients[i]) {
-                clients[i] = client;
-                break;
-            }
-    } else {
-        switch (state) {
-        case RX:
-            if (clients[cur]) {
-                size_t n = clients[cur].available();
-                if (n) {
-                    slave_buf.len = clients[cur].read(slave_buf.data, n);
-                    if (process_master_request(&slave_buf)) {
-                        state = TX;
-                        break;
+        for (i = 0; i < CONFIG_MAX_TCP_CONN; i++) {
+
+            client = pt->clients[i];
+            if (client) {
+                if (!client.connected()) {
+                    client.stop();
+                } else {
+
+                    size_t n = client.available();
+                    if (n) {
+                        pt->mb.len = client.read(pt->mb.data, n);
+                        if (process_master_request(&pt->mb))
+                            client.write(pt->mb.data, pt->mb.len);
                     }
-                } else if (!clients[cur].connected()) {
-                    clients[cur].stop();
                 }
             }
 
-            cur++;
-            if (cur == CONFIG_MAX_TCP_CONN)
-                cur = 0;
-
-            break;
-
-        case TX:
-            clients[cur].write(slave_buf.data, slave_buf.len);
-
-            cur++;
-            if (cur == CONFIG_MAX_TCP_CONN)
-                cur = 0;
-
-            state = RX;
+            async_yield;
         }
     }
+
+    async_end;
 }
 
-#endif          /* MBETH */
+void eth_task(void)
+{
+    if (MBETH)
+        eth_slave(&eth_slave_state);
+}
+
+#endif                          /* MBETH */

@@ -29,44 +29,35 @@
 #define SLAVE_ADDRESS           1
 #endif
 
+#ifndef MASTER_BAUD_RATE
+#define MASTER_BAUD_RATE        57600
+#endif
+
 #ifndef SLAVE_BAUD_RATE
 #define SLAVE_BAUD_RATE         57600
+#endif
+
+#ifndef MBMASTER_IFACE
+#define MBMASTER_IFACE          Serial
 #endif
 
 #ifndef MBSLAVE_IFACE
 #define MBSLAVE_IFACE           Serial
 #endif
 
+#define MB_MASTER_TIMEOUT       50
 #define MB_SLAVE_TIMEOUT        5
+
+#ifdef MODBUS_MASTER
+#define MBMASTER                1
+#else
+#define MBMASTER                0
+#endif
 
 #ifdef MODBUS_SLAVE
 #define MBSLAVE                 1
 #else
 #define MBSLAVE                 0
-#endif
-
-#ifdef MODBUS_MASTER
-
-#define MBMASTER                1
-
-#ifndef MBMASTER_IFACE
-#define MBMASTER_IFACE          Serial1
-#endif
-
-#ifndef MASTER_BAUD_RATE
-#define MASTER_BAUD_RATE        57600
-#endif
-
-#define MB_MASTER_TIMEOUT       50
-
-#else       /* MODBUS_MASTER */
-
-#define MBMASTER                0
-
-#endif      /* MODBUS_MASTER */
-
-#if defined RS485_MASTER_EN || defined RS485_SLAVE_EN
-#define RS485_EN
 #endif
 
 /* calculate UART buffer length */

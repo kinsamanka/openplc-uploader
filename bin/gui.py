@@ -58,7 +58,7 @@ class WorkerThread(Thread):
             f.append(f'-DMASTER_BAUD_RATE={t}')
             t = e['rtu']['master_pin']
             if t:
-                f.append(f'-DRS485_EN_PIN={t}')
+                f.append(f'-DRS485_MASTER_EN_PIN={t}')
                 f.append(f'-DRS485_MASTER_EN')
 
         if e['rtu']['slave_en']:
@@ -71,7 +71,7 @@ class WorkerThread(Thread):
             f.append(f'-DSLAVE_ADDRESS={t}')
             t = e['rtu']['slave_pin']
             if t:
-                f.append(f'-DRS485_EN_PIN={t}')
+                f.append(f'-DRS485_SLAVE_EN_PIN={t}')
                 f.append(f'-DRS485_SLAVE_EN')
 
         if e['tcp']['en'] and e['tcp']['wired']:
