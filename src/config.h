@@ -37,12 +37,28 @@
 #define SLAVE_BAUD_RATE         57600
 #endif
 
+#ifdef ARDUINO_ARCH_STM32
+
+#ifndef MBMASTER_IFACE
+#define MBMASTER_IFACE          Serial1
+#endif
+#ifndef MBSLAVE_IFACE
+#define MBSLAVE_IFACE           Serial1
+#endif
+
+#else
+
 #ifndef MBMASTER_IFACE
 #define MBMASTER_IFACE          Serial
 #endif
-
 #ifndef MBSLAVE_IFACE
 #define MBSLAVE_IFACE           Serial
+#endif
+
+#endif
+
+#ifndef STM32_BAUD_RATE
+#define STM32_BAUD_RATE         57600
 #endif
 
 #define MB_MASTER_TIMEOUT       50
@@ -156,5 +172,7 @@
 #ifndef CONFIG_MAX_TCP_CONN
 #define CONFIG_MAX_TCP_CONN     4
 #endif
+
+#define BOOTLOADER_MAGIC        ("\xff" "\xff" "BOOTLOADER" "\xff" "\xff")
 
 #endif

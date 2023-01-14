@@ -32,6 +32,6 @@
 #endif
 
 void serial_init(void);
-void serial_task(unsigned long dt);
+void serial_task(unsigned long dt, int run);
 
 #endif

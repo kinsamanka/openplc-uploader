@@ -23,6 +23,16 @@ void hardwareInit()
 
     for (uint8_t i = 0; i < NUM(pinMask_AOUT); i++)
         pinMode(pinMask_AOUT[i], OUTPUT);
+
+    if (RUN_LED)
+        pinMode(RUN_LED, OUTPUT);
+
+    if (ERR_LED)
+        pinMode(ERR_LED, OUTPUT);
+
+    if (RUN_SW)
+        pinMode(RUN_SW, INPUT);
+
 }
 
 void updateInputBuffers()

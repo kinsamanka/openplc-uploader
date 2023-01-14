@@ -19,7 +19,11 @@ class WorkerThread(Thread):
         self.cwd = cwd
         self.env = {}
         self.upload = False
-        self.cmd = ['pio', '--no-ansi', 'run', '-e', e['id']]
+
+        if e['bootloader']:
+            self.cmd = ['pio', '--no-ansi', 'run', '-e', 'stm32_bootloader']
+        else:
+            self.cmd = ['pio', '--no-ansi', 'run', '-e', e['id']]
 
         win = platform.system() == "Windows"
 
@@ -51,28 +55,30 @@ class WorkerThread(Thread):
         f.append(f'-DAOUT={{{t}}}')
 
         if e['rtu']['master_en']:
-            f.append(f'-DMODBUS_MASTER')
-            t = e['rtu']['master_port']
-            f.append(f'-DMBMASTER_IFACE={t}')
-            t = e['rtu']['master_baud']
-            f.append(f'-DMASTER_BAUD_RATE={t}')
-            t = e['rtu']['master_pin']
-            if t:
-                f.append(f'-DRS485_MASTER_EN_PIN={t}')
-                f.append(f'-DRS485_MASTER_EN')
+            if e['rtu']['master_port']:
+                f.append(f'-DMODBUS_MASTER')
+                t = e['rtu']['master_port']
+                f.append(f'-DMBMASTER_IFACE={t}')
+                t = e['rtu']['master_baud']
+                f.append(f'-DMASTER_BAUD_RATE={t}')
+                t = e['rtu']['master_pin']
+                if t:
+                    f.append(f'-DRS485_MASTER_EN_PIN={t}')
+                    f.append(f'-DRS485_MASTER_EN')
 
         if e['rtu']['slave_en']:
-            f.append(f'-DMODBUS_SLAVE')
-            t = e['rtu']['slave_port']
-            f.append(f'-DMBSLAVE_IFACE={t}')
-            t = e['rtu']['slave_baud']
-            f.append(f'-DSLAVE_BAUD_RATE={t}')
-            t = e['rtu']['slave_id']
-            f.append(f'-DSLAVE_ADDRESS={t}')
-            t = e['rtu']['slave_pin']
-            if t:
-                f.append(f'-DRS485_SLAVE_EN_PIN={t}')
-                f.append(f'-DRS485_SLAVE_EN')
+            if e['rtu']['slave_port']:
+                f.append(f'-DMODBUS_SLAVE')
+                t = e['rtu']['slave_port']
+                f.append(f'-DMBSLAVE_IFACE={t}')
+                t = e['rtu']['slave_baud']
+                f.append(f'-DSLAVE_BAUD_RATE={t}')
+                t = e['rtu']['slave_id']
+                f.append(f'-DSLAVE_ADDRESS={t}')
+                t = e['rtu']['slave_pin']
+                if t:
+                    f.append(f'-DRS485_SLAVE_EN_PIN={t}')
+                    f.append(f'-DRS485_SLAVE_EN')
 
         if e['tcp']['en'] and e['tcp']['wired']:
             f.append(f'-DMODBUS_ETH')
@@ -119,6 +125,23 @@ class WorkerThread(Thread):
                 else:
                     t = t.replace(' ', '\\ ')
                     f.append(f'-DCONFIG_WIFI_PASS=\\"{t}\\"')
+
+        self.bootload = e['bootloader']
+        l = e['led'].copy()
+        if e['bootloader']:
+            if l:
+                s = l.pop()
+                f.append(f'-DRUN_LED={{{{GPIO{s[1:2]},GPIO{s[2:]}}},0}}')
+            if l:
+                s = l.pop()
+                f.append(f'-DERR_LED={{{{GPIO{s[1:2]},GPIO{s[2:]}}},0}}')
+        else:
+            if l:
+                s = l.pop()
+                f.append(f'-DRUN_LED={s}')
+            if l:
+                s = l.pop()
+                f.append(f'-DERR_LED={s}')
 
         self.env['PLATFORMIO_BUILD_SRC_FLAGS'] = ' '.join(f)
         self.start()
@@ -560,16 +583,25 @@ class RtuPanel(wx.Panel):
         state = e.GetEventObject().GetValue()
 
         self.cbb_slave_port.Enable(state)
+        if not self.pins:
+            self.cbb_slave_en_pin.Enable(False)
+        else:
+            self.cbb_slave_en_pin.Enable(state)
         self.cbb_slave_baud.Enable(state)
-        self.cbb_slave_en_pin.Enable(state)
         self.tc_slave_id.Enable(state)
 
-        if (self.uart_count < 2) and state:
+        if (self.uart_count == 1) and state:
+            self.cbb_slave_port.SetSelection(0)
             self.cb_master_en.SetValue(False)
             self.cbb_master_port.Enable(False)
             self.cbb_master_baud.Enable(False)
             self.cbb_master_en_pin.Enable(False)
             self.clear_master_en()
+        elif (self.uart_count > 1) and (self.cbb_slave_port.GetSelection() == -1) and state:
+            if (self.cbb_master_port.GetSelection() == 0):
+                self.cbb_slave_port.SetSelection(1)
+            else:
+                self.cbb_slave_port.SetSelection(0)
 
         if not state:
             self.clear_slave_en()
@@ -580,16 +612,25 @@ class RtuPanel(wx.Panel):
         state = e.GetEventObject().GetValue()
 
         self.cbb_master_port.Enable(state)
+        if not self.pins:
+            self.cbb_master_en_pin.Enable(False)
+        else:
+            self.cbb_master_en_pin.Enable(state)
         self.cbb_master_baud.Enable(state)
-        self.cbb_master_en_pin.Enable(state)
 
-        if (self.uart_count < 2) and state:
+        if (self.uart_count == 1) and state:
+            self.cbb_master_port.SetSelection(0)
             self.cb_slave_en.SetValue(False)
             self.cbb_slave_port.Enable(False)
             self.cbb_slave_baud.Enable(False)
             self.cbb_slave_en_pin.Enable(False)
             self.tc_slave_id.Enable(False)
             self.clear_slave_en()
+        elif (self.uart_count > 1) and (self.cbb_master_port.GetSelection() == -1) and state:
+            if (self.cbb_slave_port.GetSelection() == 1):
+                self.cbb_master_port.SetSelection(0)
+            else:
+                self.cbb_master_port.SetSelection(1)
 
         if not state:
             self.clear_master_en()
@@ -616,6 +657,10 @@ class RtuPanel(wx.Panel):
         l2.sort()
         self.pins = l1 + l2
 
+        if msg['uarts']:
+            self.uarts = msg['uarts']
+            c = len(self.uarts)
+
         self.uart_count = c
 
         p1 = self.cbb_master_port.GetStringSelection()
@@ -633,9 +678,25 @@ class RtuPanel(wx.Panel):
 
         if p1 in self.uarts:
             self.cbb_master_port.SetValue(p1)
+            if self.cb_master_en.GetValue() and self.pins:
+                self.cbb_master_en_pin.Enable(True)
+        else:
+            self.cb_master_en.SetValue(False)
+            self.cbb_master_port.Enable(False)
+            self.cbb_master_baud.Enable(False)
+            self.cbb_master_en_pin.Enable(False)
+            self.clear_master_en()
 
         if p2 in self.uarts:
             self.cbb_slave_port.SetValue(p2)
+            if self.cb_slave_en.GetValue() and self.pins:
+                self.cbb_slave_en_pin.Enable(True)
+        else:
+            self.cb_slave_en.SetValue(False)
+            self.cbb_slave_port.Enable(False)
+            self.cbb_slave_baud.Enable(False)
+            self.cbb_slave_en_pin.Enable(False)
+            self.clear_slave_en()
 
         if self.master_pin and self.master_pin in self.pins:
             self.cbb_master_en_pin.SetValue(self.master_pin)
@@ -646,6 +707,10 @@ class RtuPanel(wx.Panel):
             self.cbb_slave_en_pin.SetValue(self.slave_pin)
         else:
             self.slave_pin = ''
+
+        if not self.pins:
+            self.cbb_master_en_pin.Enable(False)
+            self.cbb_slave_en_pin.Enable(False)
 
         if c == 1 and self.cb_slave_en.GetValue() and self.cb_master_en.GetValue():
             self.cb_master_en.SetValue(False)
@@ -712,6 +777,10 @@ class RtuPanel(wx.Panel):
         self.cbb_slave_en_pin.Enable(state)
         self.tc_slave_id.Enable(state)
         self.tc_slave_id.ChangeValue(self.slave_id)
+
+        if not self.pins:
+            self.cbb_master_en_pin.Enable(False)
+            self.cbb_slave_en_pin.Enable(False)
 
 
 class MBPanel(wx.Panel):
@@ -1082,6 +1151,7 @@ class Uploader(wx.Frame):
         wx.SystemOptions.SetOption("msw.notebook.themed-background", 0)
 
         pub.subscribe(self.on_result, "console_output")
+        pub.subscribe(self.on_config_change, "config_change")
 
         self.cfg = cfg
         self.cwd = cwd
@@ -1092,6 +1162,11 @@ class Uploader(wx.Frame):
         self._boards = boards
         self.board_id = ''
         self.board_name = ''
+        self.board_platform = ''
+        self.led = []
+        self.bootloader_en = False
+
+        self._ioconfig_hidden = False
 
         self._ports = []
 
@@ -1162,23 +1237,23 @@ class Uploader(wx.Frame):
         self.term.SetForegroundColour(wx.Colour(255, 255, 255))
         self.term.SetBackgroundColour(wx.Colour(0, 0, 0))
 
-        nb2 = wx.Notebook(self.nb1)
-        nb3 = wx.Notebook(nb2)
+        self.nb2 = wx.Notebook(self.nb1)
+        nb3 = wx.Notebook(self.nb2)
 
         self.rtu_panel = RtuPanel(nb3)
         self.tcp_panel = TcpPanel(nb3)
         self.mb_panel = MBPanel(nb3)
-        self.io_panel = IoPanel(nb2)
+        self.io_panel = IoPanel(self.nb2)
 
         nb3.AddPage(self.mb_panel, "Config")
         nb3.AddPage(self.rtu_panel, "RTU")
         nb3.AddPage(self.tcp_panel, "TCP")
 
-        nb2.AddPage(nb3, "Modbus")
-        nb2.AddPage(self.io_panel, "IO Config")
+        self.nb2.AddPage(nb3, "Modbus")
+        self.nb2.AddPage(self.io_panel, "IO Config")
 
         self.nb1.AddPage(self.term, "Output")
-        self.nb1.AddPage(nb2, "Settings")
+        self.nb1.AddPage(self.nb2, "Settings")
 
         sizer.Add(self.nb1, (6, 0), (2, 4), wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
@@ -1186,6 +1261,10 @@ class Uploader(wx.Frame):
         self.bt_3.Bind(wx.EVT_BUTTON, self.on_upload)
         self.bt_3.Enable(False)
         sizer.Add(self.bt_3, pos=(9, 2))
+
+        self.cb_boot_en = wx.CheckBox(panel, -1, "Install Bootloader")
+        self.cb_boot_en.Enable(False)
+        sizer.Add(self.cb_boot_en, (9, 1), (1, 1), wx.RIGHT, 20)
 
         bt_4 = wx.Button(panel, label="Close")
         bt_4.Bind(wx.EVT_BUTTON, self.on_close)
@@ -1196,6 +1275,16 @@ class Uploader(wx.Frame):
 
         panel.SetSizer(sizer)
         sizer.Fit(self)
+
+    def hide_ioconfig(self, s):
+        if s:
+            if not self._ioconfig_hidden:
+                self.nb2.RemovePage(1)
+                self._ioconfig_hidden = True
+        else:
+            if self._ioconfig_hidden:
+                self.nb2.AddPage(self.io_panel, "IO Config")
+            self._ioconfig_hidden = False
 
     def on_timer(self, e):
         ports = [p.device for p in list_ports.comports()]
@@ -1210,11 +1299,14 @@ class Uploader(wx.Frame):
                 if old:
                     if old in ports:
                         self.cb_2.SetValue(old)
+                    elif old == 'Default':
+                        self.cb_2.SetSelection(1)
                     else:
-                        self.cb_2.SetSelection(2)
-                        self.bt_3.SetLabel('Upload')
+                        self.cb_2.SetSelection(0)
+                        self.bt_3.SetLabel('Compile')
                 else:
                     self.cb_2.SetSelection(0)
+                    self.bt_3.SetLabel('Compile')
         else:
             self._ports = []
             if self.cb_2.GetCount() > 2:
@@ -1245,6 +1337,18 @@ class Uploader(wx.Frame):
         else:
             self.bt_3.SetLabel('Compile')
 
+    def on_config_change(self, msg):
+        self.board_platform = msg['platform']
+        self.bootloader_en = msg['platform'] == 'ststm32'
+        self.cb_boot_en.Enable(self.bootloader_en)
+        self.led = msg['led']
+
+        if not msg['din'] and not msg['dout'] and not msg['ain'] and not msg['aout']:
+            self.hide_ioconfig(True)
+        else:
+            self.hide_ioconfig(False)
+
+
     def get_config(self):
         return {
             'id': self.board_id,
@@ -1255,6 +1359,9 @@ class Uploader(wx.Frame):
             'rtu': self.rtu_panel.get_values(),
             'tcp': self.tcp_panel.get_values(),
             'mb': self.mb_panel.get_values(),
+            'platform': self.board_platform,
+            'bootloader': self.cb_boot_en.GetValue(),
+            'led': self.led,
         }
 
     def load_config(self):
@@ -1266,6 +1373,10 @@ class Uploader(wx.Frame):
         else:
             if 'io' in s:
                 self.io_panel.set_values(s['io'])
+                n = True
+                for a in s['io']['def_config']:
+                    n &= not s['io']['def_config'][a]
+                self.hide_ioconfig(n)
             if 'rtu' in s:
                 self.rtu_panel.set_values(s['rtu'])
             if 'tcp' in s:
@@ -1288,6 +1399,16 @@ class Uploader(wx.Frame):
                 if s['port'] and s['port'] in self.cb_2.GetStrings():
                     self.cb_2.SetValue(s['port'])
                     self.bt_3.SetLabel('Upload')
+                else:
+                    self.bt_3.SetLabel('Compile')
+
+            if 'platform' in s:
+                self.board_platform = s['platform']
+                self.bootloader_en = s['platform'] == 'ststm32'
+                self.cb_boot_en.Enable(self.bootloader_en)
+
+            if 'led' in s:
+                self.led = s['led']
 
     def save_config(self):
         s = self.get_config()
@@ -1297,6 +1418,7 @@ class Uploader(wx.Frame):
     def on_upload(self, e):
         s = self.get_config()
         if not self.worker:
+            self.cb_boot_en.Enable(False)
             self.bt_3.Enable(False)
             self.term.Clear()
             self.output_index = -1
@@ -1312,6 +1434,8 @@ class Uploader(wx.Frame):
     def on_result(self, e):
         if not e['busy']:
             self.worker = None
+            self.cb_boot_en.Enable(self.bootloader_en)
+            self.cb_boot_en.SetValue(False)
             self.bt_3.Enable(True)
         else:
             while self.output_index < e['index']:
@@ -1333,7 +1457,9 @@ class Uploader(wx.Frame):
             'discrete_count',
             'holding_count',
             'input_count',
-        ):
+            'platform',
+            'led',
+            'uarts'):
             config[a] = self._boards[idx][a]
 
         self.board_id = self._boards[idx]['id'].removeprefix('env:')
@@ -1378,35 +1504,50 @@ def main():
     a = []
     for i in cp:
         if 'env:' in i:
-            hw = cp[i]['board_hw']
+            try:
+                hw = cp[i]['board_hw']
 
-            count = 1
-            if 'board_uart' in cp[i]:
-                count = int(cp[i]['board_uart'])
+                count = 1
+                if 'board_uart' in cp[i]:
+                    count = int(cp[i]['board_uart'])
 
-            m = {'discrete': cp.getlist(hw, 'din'),
-                 'coil': cp.getlist(hw, 'dout'),
-                 'input': cp.getlist(hw, 'ain'),
-                 'holding': cp.getlist(hw, 'aout')}
+                m = {'discrete': cp.getlist(hw, 'din', fallback=[]),
+                     'coil': cp.getlist(hw, 'dout', fallback=[]),
+                     'input': cp.getlist(hw, 'ain', fallback=[]),
+                     'holding': cp.getlist(hw, 'aout', fallback=[]),
+                     'led': cp.getlist(hw, 'led', fallback=[]),
+                     'uarts': cp.getlist(hw, 'uarts', fallback=[]),
+                     'discrete_count': cp.get(hw, 'discrete_count',
+                                                 fallback=None),
+                     'coil_count': cp.get(hw, 'coil_count', fallback=None),
+                     'input_count': cp.get(hw, 'input_count', fallback=None),
+                     'holding_count': cp.get(hw, 'holding_count', fallback=None),
+                    }
 
-            # set minimum to 4 registers
-            for b in ('coil', 'discrete', 'holding', 'input'):
-                m[f'{b}_count'] = '4'
-                if len(m[b]) > 4:
-                    m[f'{b}_count'] = str(len(m[b]))
+                # set minimum to 4 registers
+                for b in ('coil', 'discrete', 'holding', 'input'):
+                    if not m[f'{b}_count']:
+                        m[f'{b}_count'] = '4'
+                        if len(m[b]) > 4:
+                            m[f'{b}_count'] = str(len(m[b]))
 
-            a.append({'id': i,
-                      'name': cp[i]['board_name'],
-                      'din': m['discrete'],
-                      'dout': m['coil'],
-                      'ain': m['input'],
-                      'aout': m['holding'],
-                      'uart_count': count,
-                      'coil_count': m['coil_count'],
-                      'discrete_count': m['discrete_count'],
-                      'holding_count': m['holding_count'],
-                      'input_count': m['input_count'],
-                      })
+                a.append({'id': i,
+                          'name': cp[i]['board_name'],
+                          'din': m['discrete'],
+                          'dout': m['coil'],
+                          'ain': m['input'],
+                          'aout': m['holding'],
+                          'uart_count': count,
+                          'coil_count': m['coil_count'],
+                          'discrete_count': m['discrete_count'],
+                          'holding_count': m['holding_count'],
+                          'input_count': m['input_count'],
+                          'platform': cp[i]['platform'],
+                          'led': m['led'],
+                          'uarts': m['uarts'],
+                          })
+            except KeyError:
+                pass
 
     app = wx.App()
     ex = Uploader(None, boards=a, cfg=str(c), cwd=d, title='Uploader',
