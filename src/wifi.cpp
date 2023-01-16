@@ -24,6 +24,7 @@ struct wifi_slave_state {
     async_state;
     struct modbus_buf mb;
     WiFiClient clients[CONFIG_MAX_TCP_CONN];
+    size_t client_idx;
 };
 
 static struct wifi_slave_state wifi_slave_state = {
@@ -35,7 +36,7 @@ static struct wifi_slave_state wifi_slave_state = {
            .size = MAX_RESPONSE,
            .last_dt = 0,
            .rtu = 0,
-           }
+           },
 };
 
 void wifi_init(void)
@@ -86,43 +87,54 @@ void wifi_init(void)
 
 static async wifi_slave(struct wifi_slave_state *pt)
 {
+    size_t i, n;
     WiFiClient client;
-    uint8_t i;
+
+    client = server.available();
+    if (client) {
+        for (i = 0; i < CONFIG_MAX_TCP_CONN; i++)
+            if (!pt->clients[i].connected()) {
+                pt->clients[i] = client;
+                break;
+            }
+        if (i == CONFIG_MAX_TCP_CONN)
+            client.stop();
+    }
 
     async_begin(pt);
 
-    while (1) {
-        client = server.available();
+    pt->client_idx = 0;
 
+    while (1) {
+
+        client = pt->clients[pt->client_idx];
         if (client) {
-            for (uint8_t i = 0; i < CONFIG_MAX_TCP_CONN; i++)
-                if (!pt->clients[i]) {
-                    pt->clients[i] = client;
-                    break;
+            if (client.connected()) {
+                n = client.available();
+                if (n) {
+                    for (i = 0; i < n; i++) {
+                        if (i < pt->mb.size)
+                            pt->mb.data[i] = client.read();
+                        else
+                            client.read();
+                    }
+                    if (n > pt->mb.size)
+                        pt->mb.len = pt->mb.size;
+                    else
+                        pt->mb.len = n;
+
+                    if (process_master_request(&pt->mb))
+                        client.write(pt->mb.data, pt->mb.len);
                 }
+            } else {
+                client.stop();
+            }
         }
+
+        if (++pt->client_idx >= CONFIG_MAX_TCP_CONN)
+            pt->client_idx = 0;
 
         async_yield;
-
-        for (i = 0; i < CONFIG_MAX_TCP_CONN; i++) {
-
-            client = pt->clients[i];
-            if (client) {
-                if (!client.connected()) {
-                    client.stop();
-                } else {
-
-                    size_t n = client.available();
-                    if (n) {
-                        pt->mb.len = client.read(pt->mb.data, n);
-                        if (process_master_request(&pt->mb))
-                            client.write(pt->mb.data, pt->mb.len);
-                    }
-                }
-            }
-
-            async_yield;
-        }
     }
 
     async_end;
