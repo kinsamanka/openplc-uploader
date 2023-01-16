@@ -319,7 +319,10 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #define UART1                       Serial1
 #define UART2                       Serial4
 
-#define USE_W5500
+#define SPI_MISO                    PB14
+#define SPI_MOSI                    PB15
+#define SPI_SCLK                    PB13
+#define SPI_SS                      PB12
 
 #elif defined BOARD_ETH_MODBUS_IO5R
 
@@ -340,13 +343,37 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #define UART1                       Serial1
 #define UART2                       Serial2
 
-#define USE_W5500
+#define SPI_MISO                    PA6
+#define SPI_MOSI                    PA7
+#define SPI_SCLK                    PA5
+#define SPI_SS                      PA4
+
+#define W5500_NRST                  PA0
 
 #else
 
 #error "No BOARD defined!"
 
 #endif
+
+#if defined RS485_MASTER_EN && !defined RS485_MASTER_EN_PIN
+#error "RS485 Master is enabled but no defined EN pin!"
+#endif
+
+#if defined RS485_SLAVE_EN && !defined RS485_SLAVE_EN_PIN
+#error "RS485 Slave is enabled but no defined EN pin!"
+#endif
+
+#if defined RS485_SLAVE_EN && !defined UART_SLAVE_TX_COMPLETE
+#error "RS485 Slave is enabled but no uart tx complete test defined!"
+#endif
+
+#if defined RS485_MASTER_EN && !defined UART_MASTER_TX_COMPLETE
+#error "RS485 Master is enabled but no uart tx complete test defined!"
+#endif
+
+
+/* Defaults */
 
 #ifndef RUN_LED
 #define RUN_LED                     0
@@ -367,20 +394,24 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #define ARDUINO_ARCH_STM32          0
 #endif
 
-#if defined RS485_MASTER_EN && !defined RS485_MASTER_EN_PIN
-#error "RS485 Master is enabled but no defined EN pin!"
+#ifndef SPI_MISO
+#define SPI_MISO                    0
 #endif
 
-#if defined RS485_SLAVE_EN && !defined RS485_SLAVE_EN_PIN
-#error "RS485 Slave is enabled but no defined EN pin!"
+#ifndef SPI_MOSI
+#define SPI_MOSI                    0
 #endif
 
-#if defined RS485_SLAVE_EN && !defined UART_SLAVE_TX_COMPLETE
-#error "RS485 Slave is enabled but no uart tx complete test defined!"
+#ifndef SPI_SCLK
+#define SPI_SCLK                    0
 #endif
 
-#if defined RS485_MASTER_EN && !defined UART_MASTER_TX_COMPLETE
-#error "RS485 Master is enabled but no uart tx complete test defined!"
+#ifndef SPI_SS
+#define SPI_SS                      0
+#endif
+
+#ifndef W5500_NRST
+#define W5500_NRST                  0
 #endif
 
 #endif

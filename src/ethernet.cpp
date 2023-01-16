@@ -19,6 +19,7 @@ struct eth_slave_state {
     async_state;
     struct modbus_buf mb;
     EthernetClient clients[CONFIG_MAX_TCP_CONN];
+    size_t client_idx;
 };
 
 static struct eth_slave_state eth_slave_state = {
@@ -30,11 +31,27 @@ static struct eth_slave_state eth_slave_state = {
            .size = MAX_RESPONSE,
            .last_dt = 0,
            .rtu = 0,
-           }
+           },
 };
 
 void eth_init(void)
 {
+    if (W5500_NRST) {
+        pinMode(W5500_NRST, OUTPUT);
+        digitalWrite(W5500_NRST, HIGH);
+    }
+
+#if SPI_MISO && SPI_MOSI && SPI_SCLK && SPI_SS
+    SPI.setMISO(SPI_MISO);
+    SPI.setMOSI(SPI_MOSI);
+    SPI.setSCLK(SPI_SCLK);
+
+    SPI.begin(SPI_SS);
+#endif
+
+    if (SPI_SS)
+        Ethernet.init(SPI_SS);
+
     uint8_t mac[] = CONFIG_MAC;
 #if defined CONFIG_IP
     const uint8_t ip[] = CONFIG_IP;
@@ -68,43 +85,54 @@ void eth_init(void)
 
 static async eth_slave(struct eth_slave_state *pt)
 {
+    size_t i, n;
     EthernetClient client;
-    uint8_t i;
+
+    client = server.accept();
+    if (client) {
+        for (i = 0; i < CONFIG_MAX_TCP_CONN; i++)
+            if (!pt->clients[i].connected()) {
+                pt->clients[i] = client;
+                break;
+            }
+        if (i == CONFIG_MAX_TCP_CONN)
+            client.stop();
+    }
 
     async_begin(pt);
 
-    while (1) {
-        client = server.accept();
+    pt->client_idx = 0;
 
+    while (1) {
+
+        client = pt->clients[pt->client_idx];
         if (client) {
-            for (uint8_t i = 0; i < CONFIG_MAX_TCP_CONN; i++)
-                if (!pt->clients[i]) {
-                    pt->clients[i] = client;
-                    break;
+            if (client.connected()) {
+                n = client.available();
+                if (n) {
+                    for (i = 0; i < n; i++) {
+                        if (i < pt->mb.size)
+                            pt->mb.data[i] = client.read();
+                        else
+                            client.read();
+                    }
+                    if (n > pt->mb.size)
+                        pt->mb.len = pt->mb.size;
+                    else
+                        pt->mb.len = n;
+
+                    if (process_master_request(&pt->mb))
+                        client.write(pt->mb.data, pt->mb.len);
                 }
+            } else {
+                client.stop();
+            }
         }
+
+        if (++pt->client_idx >= CONFIG_MAX_TCP_CONN)
+            pt->client_idx = 0;
 
         async_yield;
-
-        for (i = 0; i < CONFIG_MAX_TCP_CONN; i++) {
-
-            client = pt->clients[i];
-            if (client) {
-                if (!client.connected()) {
-                    client.stop();
-                } else {
-
-                    size_t n = client.available();
-                    if (n) {
-                        pt->mb.len = client.read(pt->mb.data, n);
-                        if (process_master_request(&pt->mb))
-                            client.write(pt->mb.data, pt->mb.len);
-                    }
-                }
-            }
-
-            async_yield;
-        }
     }
 
     async_end;
