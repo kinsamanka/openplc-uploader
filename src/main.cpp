@@ -50,23 +50,28 @@ void setup()
 
 static async blink_task(unsigned long dt)
 {
-    async_begin(&bts);
-    
-    bts.dt = dt;
-    
-    while (1) {
-        digitalWrite(RUN_LED, HIGH);
-        await((dt - bts.dt) > 300);
-
-        await(run_prog);
-
-        digitalWrite(RUN_LED, LOW);
-        await((dt - bts.dt) > 900);
-
+    if (RUN_LED) {
+        async_begin(&bts);
+        
         bts.dt = dt;
-    }
+        
+        while (1) {
+            digitalWrite(RUN_LED, HIGH);
+            await((dt - bts.dt) > 300);
 
-    async_end;
+            await(run_prog);
+
+            digitalWrite(RUN_LED, LOW);
+            await((dt - bts.dt) > 900);
+
+            bts.dt = dt;
+        }
+
+        async_end;
+
+    } else {
+        return ASYNC_DONE;
+    }
 }
 
 static async run_tasks(unsigned long dt)
@@ -75,8 +80,7 @@ static async run_tasks(unsigned long dt)
 
     while (1) {
 
-        if (RUN_LED)
-            await_while(blink_task(dt));
+        blink_task(dt);
 
         if (MBSLAVE || MBMASTER || ARDUINO_ARCH_STM32) {
             serial_task(dt, run_prog);
