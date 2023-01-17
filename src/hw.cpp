@@ -37,6 +37,11 @@ void hardwareInit()
         pinMode(RS_485_EN, OUTPUT);
         digitalWrite(RS_485_EN, LOW);
     }
+
+    if (W5500_NRST) {
+        pinMode(W5500_NRST, OUTPUT);
+        digitalWrite(W5500_NRST, HIGH);
+    }
 }
 
 void updateInputBuffers()

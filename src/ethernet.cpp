@@ -36,11 +36,6 @@ static struct eth_slave_state eth_slave_state = {
 
 void eth_init(void)
 {
-    if (W5500_NRST) {
-        pinMode(W5500_NRST, OUTPUT);
-        digitalWrite(W5500_NRST, HIGH);
-    }
-
 #if SPI_MISO && SPI_MOSI && SPI_SCLK && SPI_SS
     SPI.setMISO(SPI_MISO);
     SPI.setMOSI(SPI_MOSI);
