@@ -241,6 +241,8 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #define RUN_SW                      PB2
 #endif
 
+#define RS_485_EN                   PA14
+
 #elif defined BOARD_FX3U_14
 
 #undef DIN                          /* override uploader since pinout is fixed */
@@ -263,6 +265,8 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 
 #define UART1                       Serial1
 #define UART2                       Serial3
+
+#define RS_485_EN                   PA14
 
 #elif defined BOARD_FX3U_24
 
@@ -289,6 +293,8 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 
 #define UART1                       Serial1
 #define UART2                       Serial3
+
+#define RS_485_EN                   PA14
 
 #elif defined BOARD_FX3U_26_E
 
@@ -343,6 +349,8 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #define UART1                       Serial1
 #define UART2                       Serial2
 
+#define RS_485_EN                   PA10
+
 #define SPI_MISO                    PA6
 #define SPI_MOSI                    PA7
 #define SPI_SCLK                    PA5
@@ -353,6 +361,18 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #else
 
 #error "No BOARD defined!"
+
+#endif
+
+#if ARDUINO_ARCH_STM32 && defined STM32F1xx
+
+#define UART_SR_TCn(n)               ( n ## _SR_TC )
+#define UART_SR_TC(n)                UART_SR_TCn(n)
+
+#define Serial1_SR_TC                (USART1->SR & USART_SR_TC)
+#define Serial2_SR_TC                (USART2->SR & USART_SR_TC)
+#define Serial3_SR_TC                (USART3->SR & USART_SR_TC)
+#define Serial4_SR_TC                (USART4->SR & USART_SR_TC)
 
 #endif
 
@@ -412,6 +432,10 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 
 #ifndef W5500_NRST
 #define W5500_NRST                  0
+#endif
+
+#ifndef RS_485_EN
+#define RS_485_EN                   0
 #endif
 
 #endif

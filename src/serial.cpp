@@ -70,8 +70,34 @@ void serial_init(void)
 #if ARDUINO_ARCH_STM32
     Serial1.begin(STM32_BAUD_RATE);
     Serial1.flush();
-#endif
 
+    if (UART1 == MBMASTER_IFACE) {
+
+        if (MBSLAVE) {
+            MBSLAVE_IFACE.begin(SLAVE_BAUD_RATE);
+            MBSLAVE_IFACE.flush();
+        }
+
+    } else if (UART1 == MBSLAVE_IFACE) {
+
+        if (MBMASTER) {
+            MBMASTER_IFACE.begin(MASTER_BAUD_RATE);
+            MBMASTER_IFACE.flush();
+        }
+
+    } else {
+
+        if (MBSLAVE) {
+            MBSLAVE_IFACE.begin(SLAVE_BAUD_RATE);
+            MBSLAVE_IFACE.flush();
+        }
+
+        if (MBMASTER) {
+            MBMASTER_IFACE.begin(MASTER_BAUD_RATE);
+            MBMASTER_IFACE.flush();
+        }
+    }
+#else
     if (MBSLAVE) {
         MBSLAVE_IFACE.begin(SLAVE_BAUD_RATE);
         MBSLAVE_IFACE.flush();
@@ -81,7 +107,7 @@ void serial_init(void)
         MBMASTER_IFACE.begin(MASTER_BAUD_RATE);
         MBMASTER_IFACE.flush();
     }
-
+#endif
     if (RS485_MASTER_EN) {
         pinMode(RS485_MASTER_EN_PIN, OUTPUT);
         digitalWrite(RS485_MASTER_EN_PIN, 0);
@@ -102,8 +128,22 @@ void serial_init(void)
 
 static inline void slave_en_pin(int state)
 {
+#if ARDUINO_ARCH_STM32
+    if (RS_485_EN && UART2 == MBSLAVE_IFACE)
+        digitalWrite(RS_485_EN, state);
+#else
     if (RS485_SLAVE_EN)
         digitalWrite(RS485_SLAVE_EN_PIN, state);
+#endif
+}
+
+static inline int slave_tx_complete(void)
+{
+#if ARDUINO_ARCH_STM32
+    return UART_SR_TC(MBSLAVE_IFACE);
+#else
+    return (!RS485_SLAVE_EN || UART_SLAVE_TX_COMPLETE);
+#endif
 }
 
 #if ARDUINO_ARCH_STM32
@@ -182,7 +222,7 @@ static async serial_slave(unsigned long dt, struct serial_slave_state *pt)
             async_yield;
         }
 
-        await(!RS485_SLAVE_EN || UART_SLAVE_TX_COMPLETE);
+        await(slave_tx_complete());
 
         slave_en_pin(0);
 
@@ -195,8 +235,22 @@ static async serial_slave(unsigned long dt, struct serial_slave_state *pt)
 
 static inline void master_en_pin(int state)
 {
+#if ARDUINO_ARCH_STM32
+    if (RS_485_EN && UART2 == MBMASTER_IFACE)
+        digitalWrite(RS_485_EN, state);
+#else
     if (RS485_MASTER_EN)
         digitalWrite(RS485_MASTER_EN_PIN, state);
+#endif
+}
+
+static int master_tx_complete(void)
+{
+#if ARDUINO_ARCH_STM32
+    return UART_SR_TC(MBMASTER_IFACE);
+#else
+    return (!RS485_MASTER_EN || UART_MASTER_TX_COMPLETE);
+#endif
 }
 
 static async serial_master(unsigned long dt, struct serial_master_state *pt)
@@ -227,7 +281,7 @@ static async serial_master(unsigned long dt, struct serial_master_state *pt)
             async_yield;
         }
 
-        await(!RS485_MASTER_EN || UART_MASTER_TX_COMPLETE);
+        await(master_tx_complete());
 
         master_en_pin(0);
 
@@ -260,20 +314,47 @@ static async serial_master(unsigned long dt, struct serial_master_state *pt)
 void serial_task(unsigned long dt, int run)
 {
 #if ARDUINO_ARCH_STM32
-    if (! run)
-        serial_stm32(dt, &serial_stm32_state);
-    else
-        async_init(&serial_stm32_state);
-#endif
-    if (run) {
+    if (UART1 == MBMASTER_IFACE) {
+        if (run) {
+            if (MBMASTER)
+                serial_master(dt, &master_serial_state);
+            async_init(&serial_stm32_state);
+        } else {
+            serial_stm32(dt, &serial_stm32_state);
+            async_init(&master_serial_state);
+        }
+
         if (MBSLAVE)
             serial_slave(dt, &slave_serial_state);
+
+    } else if (UART1 == MBSLAVE_IFACE) {
+        if (run) {
+            if (MBSLAVE)
+                serial_slave(dt, &slave_serial_state);
+            async_init(&serial_stm32_state);
+        } else {
+            serial_stm32(dt, &serial_stm32_state);
+            async_init(&slave_serial_state);
+        }
+
         if (MBMASTER)
             serial_master(dt, &master_serial_state);
+
     } else {
+
+        serial_stm32(dt, &serial_stm32_state);
+
         if (MBSLAVE)
-            async_init(&slave_serial_state);
+            serial_slave(dt, &slave_serial_state);
+
         if (MBMASTER)
-            async_init(&master_serial_state);
+            serial_master(dt, &master_serial_state);
     }
+#else
+    if (MBSLAVE)
+        serial_slave(dt, &slave_serial_state);
+
+    if (MBMASTER)
+        serial_master(dt, &master_serial_state);
+#endif
 }

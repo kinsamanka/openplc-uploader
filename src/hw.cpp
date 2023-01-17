@@ -33,6 +33,10 @@ void hardwareInit()
     if (RUN_SW)
         pinMode(RUN_SW, INPUT);
 
+    if (RS_485_EN) {
+        pinMode(RS_485_EN, OUTPUT);
+        digitalWrite(RS_485_EN, LOW);
+    }
 }
 
 void updateInputBuffers()
