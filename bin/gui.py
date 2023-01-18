@@ -143,6 +143,10 @@ class WorkerThread(Thread):
                 s = l.pop()
                 f.append(f'-DERR_LED={s}')
 
+        if e['bootloader']:
+            if e['upload_speed']:
+                f.append(f"-DUPLOAD_SPEED={e['upload_speed']}")
+
         self.env['PLATFORMIO_BUILD_SRC_FLAGS'] = ' '.join(f)
         self.start()
 
@@ -424,6 +428,8 @@ class RtuPanel(wx.Panel):
 
         self.slave_id = '1'
 
+        self.upload_speed = 0
+
         sz_0 = wx.BoxSizer(wx.HORIZONTAL)
 
         sz_1 = wx.StaticBoxSizer(wx.StaticBox(
@@ -552,12 +558,26 @@ class RtuPanel(wx.Panel):
         n = e.GetEventObject().GetName()
         x = e.GetEventObject().GetValue()
 
-        if n == 'master' and x == self.cbb_slave_port.GetStringSelection():
-            self.cbb_slave_port.Clear()
-            self.cbb_slave_port.Append(self.uarts)
-        elif n == 'slave' and x == self.cbb_master_port.GetStringSelection():
-            self.cbb_master_port.Clear()
-            self.cbb_master_port.Append(self.uarts)
+        if n == 'master':
+            if x == 'UART1' and not self.pins:
+                self.cbb_master_baud.Enable(False)
+                self.cbb_master_baud.SetValue(self.upload_speed)
+
+            if x == self.cbb_slave_port.GetStringSelection():
+                self.cbb_slave_port.Clear()
+                self.cbb_slave_port.Append(self.uarts)
+                if self.cb_slave_en.GetValue() and x == 'UART1':
+                    self.cbb_slave_baud.Enable(True)
+        elif n == 'slave':
+            if x == 'UART1' and not self.pins:
+                self.cbb_slave_baud.Enable(False)
+                self.cbb_slave_baud.SetValue(self.upload_speed)
+
+            if x == self.cbb_slave_port.GetStringSelection():
+                self.cbb_master_port.Clear()
+                self.cbb_master_port.Append(self.uarts)
+                if self.cb_master_en.GetValue() and x == 'UART1':
+                    self.cbb_master_baud.Enable(True)
 
     def send_pin_change(self, update=False):
         pins = []
@@ -587,7 +607,7 @@ class RtuPanel(wx.Panel):
             self.cbb_slave_en_pin.Enable(False)
         else:
             self.cbb_slave_en_pin.Enable(state)
-        self.cbb_slave_baud.Enable(state)
+
         self.tc_slave_id.Enable(state)
 
         if (self.uart_count == 1) and state:
@@ -603,6 +623,12 @@ class RtuPanel(wx.Panel):
             else:
                 self.cbb_slave_port.SetSelection(0)
 
+        if self.cbb_slave_port.GetStringSelection() == 'UART1' and not self.pins:
+            self.cbb_slave_baud.Enable(False)
+            self.cbb_slave_baud.SetValue(self.upload_speed)
+        else:
+            self.cbb_slave_baud.Enable(state)
+
         if not state:
             self.clear_slave_en()
 
@@ -616,7 +642,6 @@ class RtuPanel(wx.Panel):
             self.cbb_master_en_pin.Enable(False)
         else:
             self.cbb_master_en_pin.Enable(state)
-        self.cbb_master_baud.Enable(state)
 
         if (self.uart_count == 1) and state:
             self.cbb_master_port.SetSelection(0)
@@ -632,12 +657,19 @@ class RtuPanel(wx.Panel):
             else:
                 self.cbb_master_port.SetSelection(1)
 
+        if self.cbb_master_port.GetStringSelection() == 'UART1' and not self.pins:
+            self.cbb_master_baud.Enable(False)
+            self.cbb_master_baud.SetValue(self.upload_speed)
+        else:
+            self.cbb_master_baud.Enable(state)
+
         if not state:
             self.clear_master_en()
 
         self.send_pin_change()
 
     def on_config_change(self, msg):
+        self.upload_speed = msg['upload_speed']
         c = msg['uart_count']
         if c == 1:
             self.uarts = ["Serial"]
@@ -680,6 +712,10 @@ class RtuPanel(wx.Panel):
             self.cbb_master_port.SetValue(p1)
             if self.cb_master_en.GetValue() and self.pins:
                 self.cbb_master_en_pin.Enable(True)
+
+            if p1 == 'UART1' and not self.pins:
+                self.cbb_master_baud.Enable(False)
+                self.cbb_master_baud.SetValue(self.upload_speed)
         else:
             self.cb_master_en.SetValue(False)
             self.cbb_master_port.Enable(False)
@@ -691,6 +727,10 @@ class RtuPanel(wx.Panel):
             self.cbb_slave_port.SetValue(p2)
             if self.cb_slave_en.GetValue() and self.pins:
                 self.cbb_slave_en_pin.Enable(True)
+
+            if p2 == 'UART1' and not self.pins:
+                self.cbb_slave_baud.Enable(False)
+                self.cbb_slave_baud.SetValue(self.upload_speed)
         else:
             self.cb_slave_en.SetValue(False)
             self.cbb_slave_port.Enable(False)
@@ -735,6 +775,7 @@ class RtuPanel(wx.Panel):
             'slave_port': self.cbb_slave_port.GetStringSelection(),
             'uart_count': self.uart_count,
             'uarts': self.uarts,
+            'upload_speed': self.upload_speed,
         }
 
     def set_values(self, val):
@@ -744,7 +785,8 @@ class RtuPanel(wx.Panel):
                 'slave_id',
                 'slave_pin',
                 'uart_count',
-                'uarts'):
+                'uarts',
+                'upload_speed'):
             setattr(self, a, val[a])
 
         self.cbb_master_en_pin.Clear()
@@ -781,6 +823,10 @@ class RtuPanel(wx.Panel):
         if not self.pins:
             self.cbb_master_en_pin.Enable(False)
             self.cbb_slave_en_pin.Enable(False)
+            if val['master_port'] == 'UART1':
+                self.cbb_master_baud.Enable(False)
+            if val['slave_port'] == 'UART1':
+                self.cbb_slave_baud.Enable(False)
 
 
 class MBPanel(wx.Panel):
@@ -1165,6 +1211,7 @@ class Uploader(wx.Frame):
         self.board_platform = ''
         self.led = []
         self.bootloader_en = False
+        self.upload_speed = 0
 
         self._ioconfig_hidden = False
 
@@ -1348,6 +1395,7 @@ class Uploader(wx.Frame):
         else:
             self.hide_ioconfig(False)
 
+        self.upload_speed = msg['upload_speed']
 
     def get_config(self):
         return {
@@ -1362,6 +1410,7 @@ class Uploader(wx.Frame):
             'platform': self.board_platform,
             'bootloader': self.cb_boot_en.GetValue(),
             'led': self.led,
+            'upload_speed': self.upload_speed,
         }
 
     def load_config(self):
@@ -1459,7 +1508,8 @@ class Uploader(wx.Frame):
             'input_count',
             'platform',
             'led',
-            'uarts'):
+            'uarts',
+            'upload_speed'):
             config[a] = self._boards[idx][a]
 
         self.board_id = self._boards[idx]['id'].removeprefix('env:')
@@ -1502,7 +1552,12 @@ def main():
 
     # get board info
     a = []
+    boot_upload_speed = 57600
     for i in cp:
+        # get bootloader baud rate
+        if 'fx_common' in i:
+            boot_upload_speed = cp.get(i, 'upload_speed', fallback=57600)
+
         if 'env:' in i:
             try:
                 hw = cp[i]['board_hw']
@@ -1545,6 +1600,7 @@ def main():
                           'platform': cp[i]['platform'],
                           'led': m['led'],
                           'uarts': m['uarts'],
+                          'upload_speed': boot_upload_speed,
                           })
             except KeyError:
                 pass

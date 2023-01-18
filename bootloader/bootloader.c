@@ -98,7 +98,7 @@ void gpio_setup(void)
 static void usart_setup(void)
 {
     /* Setup USART parameters. */
-    usart_set_baudrate(USART1, 57600);
+    usart_set_baudrate(USART1, UPLOAD_SPEED);
     usart_set_databits(USART1, 9);
     usart_set_parity(USART1, USART_PARITY_EVEN);
     usart_set_stopbits(USART1, USART_CR2_STOPBITS_1);

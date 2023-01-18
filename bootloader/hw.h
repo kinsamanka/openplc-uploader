@@ -33,4 +33,8 @@ void timer3_setup(void);
 void update_inputs(void);
 void update_ouputs(void);
 
+#ifndef UPLOAD_SPEED
+#define UPLOAD_SPEED                57600
+#endif
+
 #endif
