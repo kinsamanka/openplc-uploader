@@ -308,7 +308,7 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
                                      PB3}
 #define DOUT                        {PE9, PE7, PE8, PE6, PE5, PE4, PE3, PE2,  \
                                      PE15, PE14}
-#define AIN                         {}
+#define AIN                         {PC3, PC4}
 #define AOUT                        {PA4, PA5}
 
 #ifndef RUN_LED
