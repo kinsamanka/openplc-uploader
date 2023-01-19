@@ -197,6 +197,10 @@ class TcpPanel(wx.Panel):
         self.password = ''
         self.wired = True
         self.en = False
+        self.no_wifi = 0
+        self.no_eth = 0
+
+        pub.subscribe(self.on_config_change, "config_change")
 
         _font = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
                         wx.FONTWEIGHT_NORMAL, 0, "Monospace")
@@ -368,9 +372,31 @@ class TcpPanel(wx.Panel):
             self.tc_password.Enable(en)
             self.tc_ssid.Enable(en)
 
+    def _update(self):
+        if self.no_eth and self.no_wifi:
+            self.cb_en.SetValue(False)
+            self.cb_en.Disable()
+            self.enable_forms(False)
+            self.en = False
+        elif self.no_eth and self.en:
+            self.rb_type.SetSelection(1)
+            self.rb_type.EnableItem(0, False)
+            self.update_src(None)
+        elif self.no_wifi and self.en:
+            self.rb_type.SetSelection(0)
+            self.rb_type.EnableItem(1, False)
+            self.update_src(None)
+        elif self.en:
+            self.rb_type.EnableItem(0, True)
+            self.rb_type.EnableItem(1, True)
+            self.enable_forms(True)
+        else:
+            self.cb_en.Enable()
+
     def enable_tcp(self, e):
         self.en = e.GetEventObject().GetValue()
         self.enable_forms(self.en)
+        self._update()
 
     def update_src(self, e):
         wifi = self.rb_type.GetSelection() == 1
@@ -391,6 +417,8 @@ class TcpPanel(wx.Panel):
             'ssid': self.ssid,
             'subnet': self.subnet,
             'wired': self.wired,
+            'no_eth': self.no_eth,
+            'no_wifi': self.no_wifi,
         }
 
     def set_values(self, val):
@@ -408,6 +436,15 @@ class TcpPanel(wx.Panel):
         self.en = val['en']
         self.cb_en.SetValue(self.en)
         self.enable_forms(self.en)
+
+        self.no_eth = val['no_eth']
+        self.no_wifi = val['no_wifi']
+        self._update()
+
+    def on_config_change(self, msg):
+        self.no_eth = msg['no_eth']
+        self.no_wifi = msg['no_wifi']
+        self._update()
 
 
 class RtuPanel(wx.Panel):
@@ -1509,7 +1546,9 @@ class Uploader(wx.Frame):
             'platform',
             'led',
             'uarts',
-            'upload_speed'):
+            'upload_speed',
+            'no_eth',
+            'no_wifi'):
             config[a] = self._boards[idx][a]
 
         self.board_id = self._boards[idx]['id'].removeprefix('env:')
@@ -1570,8 +1609,6 @@ def main():
                      'coil': cp.getlist(hw, 'dout', fallback=[]),
                      'input': cp.getlist(hw, 'ain', fallback=[]),
                      'holding': cp.getlist(hw, 'aout', fallback=[]),
-                     'led': cp.getlist(hw, 'led', fallback=[]),
-                     'uarts': cp.getlist(hw, 'uarts', fallback=[]),
                      'discrete_count': cp.get(hw, 'discrete_count',
                                                  fallback=None),
                      'coil_count': cp.get(hw, 'coil_count', fallback=None),
@@ -1598,9 +1635,11 @@ def main():
                           'holding_count': m['holding_count'],
                           'input_count': m['input_count'],
                           'platform': cp[i]['platform'],
-                          'led': m['led'],
-                          'uarts': m['uarts'],
+                          'led': cp.getlist(hw, 'led', fallback=[]),
+                          'uarts': cp.getlist(hw, 'uarts', fallback=[]),
                           'upload_speed': boot_upload_speed,
+                          'no_wifi': cp.get(hw, 'no_wifi', fallback=0),
+                          'no_eth': cp.get(hw, 'no_eth', fallback=0),
                           })
             except KeyError:
                 pass
