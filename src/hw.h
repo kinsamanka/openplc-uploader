@@ -303,13 +303,13 @@ Analog Out:  PB0, PB1                        (%QW0 - %QW1)
 #undef AIN
 #undef AOUT
 
-#define DIN                         {PA6, PA9, PA10, PA11, PA12, PA13, PA14,  \
-                                     PA15, PD1, PD2, PD3, PD4, PD5, PD6, PD7, \
-                                     PB3}
-#define DOUT                        {PE9, PE7, PE8, PE6, PE5, PE4, PE3, PE2,  \
+#define DIN                         {PA5, PD9, PA10, PA11, PA12, PA13, PA14,  \
+                                     PA15, PD0, PD1, PD2, PD3, PD4, PD5, PD6, \
+                                     PD7}
+#define DOUT                        {PE8, PE7, PB0, PE6, PE5, PE4, PE3, PE2,  \
                                      PE15, PE14}
 #define AIN                         {PC3, PC4}
-#define AOUT                        {PA4, PA5}
+#define AOUT                        {PA4}
 
 #ifndef RUN_LED
 #define RUN_LED                     PE0
