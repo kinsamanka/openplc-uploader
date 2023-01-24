@@ -39,6 +39,10 @@ env.Append(CCFLAGS=[f"-DMAX_FLASH_SIZE={bc.get('upload.maximum_size')}",
                     f"-DRAM_SIZE={bc.get('upload.maximum_ram_size')}",
                     f"-DRAM_{bc.get('upload.maximum_ram_size') // 1024}K"])
 
+if 'stm32' in env['PIOPLATFORM'] and "boot" not in env["PIOENV"]:
+    if (env['UPLOAD_PROTOCOL'] == 'serial'):
+        env.Append(CCFLAGS=[f"-DSTM32_BAUD_RATE={env['UPLOAD_SPEED']}"])
+
 # mark these libs as system to ignore GCC warnings
 env.Append(CCFLAGS=["-isystem", "lib/matiec/lib/C"])
 

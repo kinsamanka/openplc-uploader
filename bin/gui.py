@@ -1496,6 +1496,9 @@ class Uploader(wx.Frame):
             if 'led' in s:
                 self.led = s['led']
 
+            if 'upload_speed' in s:
+                self.upload_speed = s['upload_speed']
+
     def save_config(self):
         s = self.get_config()
         with open(self.cfg, 'wb') as h:
