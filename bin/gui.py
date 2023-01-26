@@ -6,10 +6,16 @@ from threading import Thread
 import subprocess
 import os
 from serial.tools import list_ports
+from pathlib import Path
 from pubsub import pub
 import platform
+import sys
 import wx
 from wx.lib.embeddedimage import PyEmbeddedImage
+
+
+exit_code = 0
+is_frozen = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
 
 
 class WorkerThread(Thread):
@@ -20,10 +26,15 @@ class WorkerThread(Thread):
         self.env = {}
         self.upload = False
 
-        if e['bootloader']:
-            self.cmd = ['pio', '--no-ansi', 'run', '-e', 'stm32_bootloader']
+        if is_frozen:
+            self.cmd = [str(Path(sys._MEIPASS) / 'pio')]
         else:
-            self.cmd = ['pio', '--no-ansi', 'run', '-e', e['id']]
+            self.cmd = ['pio']
+
+        if e['bootloader']:
+            self.cmd.extend(['--no-ansi', 'run', '-e', 'stm32_bootloader'])
+        else:
+            self.cmd.extend(['--no-ansi', 'run', '-e', e['id']])
 
         win = platform.system() == "Windows"
 
@@ -148,6 +159,9 @@ class WorkerThread(Thread):
                 f.append(f"-DUPLOAD_SPEED={e['upload_speed']}")
 
         self.env['PLATFORMIO_BUILD_SRC_FLAGS'] = ' '.join(f)
+        self.env['PLATFORMIO_SETTING_CHECK_PLATFORMIO_INTERVAL'] = '9999'
+        self.env['PLATFORMIO_SETTING_ENABLE_TELEMETRY'] = 'No'
+
         self.start()
 
     def run(self):
@@ -1269,45 +1283,49 @@ class Uploader(wx.Frame):
         self.load_config()
 
     def init_ui(self):
+        menubar = wx.MenuBar()
+        menu = wx.Menu()
+        update = menu.Append(wx.ID_ANY, '&Update', 'Update application')
+        quit = menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        menubar.Append(menu, '&File')
+        self.SetMenuBar(menubar)
+
+        #if not is_frozen:
+        #    update.Enable(False)
+
+        self.Bind(wx.EVT_MENU, self.on_close, quit)
+        self.Bind(wx.EVT_MENU, self.on_update, update)
+
         panel = wx.Panel(self)
 
         sizer = wx.GridBagSizer(5, 5)
 
-        st_1 = wx.StaticText(panel, label="OpenPLC Uploader")
-        sizer.Add(st_1, (0, 0), (1, 1), wx.TOP | wx.LEFT | wx.BOTTOM, 15)
-
-        icon = wx.StaticBitmap(panel, bitmap=self._logo.GetBitmap())
-        sizer.Add(icon, (0, 3), (1, 1), wx.TOP | wx.RIGHT | wx.ALIGN_RIGHT, 10)
-
-        line1 = wx.StaticLine(panel)
-        sizer.Add(line1, (1, 0), (1, 4), wx.EXPAND | wx.BOTTOM, 10)
-
         st_2 = wx.StaticText(panel, label="Source")
-        sizer.Add(st_2, (2, 0), (1, 1), wx.LEFT, 10)
+        sizer.Add(st_2, (1, 0), (1, 1), wx.LEFT, 10)
 
         self.fp_0 = wx.FilePickerCtrl(panel, message="Select OpenPLC code",
                                       wildcard="*.st",
                                       style=wx.FLP_USE_TEXTCTRL |
                                       wx.FLP_FILE_MUST_EXIST)
-        sizer.Add(self.fp_0, (2, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
+        sizer.Add(self.fp_0, (1, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
 
         st_3 = wx.StaticText(panel, label="Board")
-        sizer.Add(st_3, (3, 0), (1, 1), wx.LEFT, 10)
+        sizer.Add(st_3, (2, 0), (1, 1), wx.LEFT, 10)
 
         choices = [n['name'] for n in self._boards]
         self.cb_1 = wx.ComboBox(panel, choices=choices,
                                 style=wx.CB_DROPDOWN | wx.CB_READONLY |
                                 wx.CB_SORT)
         self.cb_1.Bind(wx.EVT_COMBOBOX, self.on_combo)
-        sizer.Add(self.cb_1, (3, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
+        sizer.Add(self.cb_1, (2, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
 
         st_4 = wx.StaticText(panel, label="Port")
-        sizer.Add(st_4, (4, 0), flag=wx.LEFT, border=10)
+        sizer.Add(st_4, (3, 0), flag=wx.LEFT, border=10)
 
         self.cb_2 = wx.ComboBox(panel, choices=['', 'Default'],
                                 style=wx.CB_DROPDOWN | wx.CB_READONLY)
         self.cb_2.Bind(wx.EVT_COMBOBOX, self.on_port)
-        sizer.Add(self.cb_2, (4, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
+        sizer.Add(self.cb_2, (3, 1), (1, 3), wx.RIGHT | wx.EXPAND, 20)
 
         line2 = wx.StaticLine(panel)
         sizer.Add(line2, (5, 0), (1, 4), wx.EXPAND, 10)
@@ -1344,7 +1362,7 @@ class Uploader(wx.Frame):
         self.bt_3 = wx.Button(panel, label='Compile')
         self.bt_3.Bind(wx.EVT_BUTTON, self.on_upload)
         self.bt_3.Enable(False)
-        sizer.Add(self.bt_3, pos=(9, 2))
+        sizer.Add(self.bt_3, (9, 2), (1, 1), wx.LEFT, 80)
 
         self.cb_boot_en = wx.CheckBox(panel, -1, "Install Bootloader")
         self.cb_boot_en.Enable(False)
@@ -1355,7 +1373,7 @@ class Uploader(wx.Frame):
         sizer.Add(bt_4, (9, 3), (1, 1), wx.BOTTOM, 20)
 
         sizer.AddGrowableRow(7)
-        sizer.AddGrowableCol(2)
+        sizer.AddGrowableCol(1)
 
         panel.SetSizer(sizer)
         sizer.Fit(self)
@@ -1559,12 +1577,29 @@ class Uploader(wx.Frame):
         self.bt_3.Enable(True)
         pub.sendMessage("config_change", msg=config)
 
+    def on_update(self, e):
+        global exit_code
+
+        dlg = wx.GenericMessageDialog(None,
+                               "Do you want to update?",
+                               'Updater',
+                               style = wx.YES_NO | wx.ICON_QUESTION)
+        dlg.SetExtendedMessage("NOTE: This will fetch the latest git updates\t\t"
+                               "\nand will overwrite any changes made to the"
+                               "\nlocal source files.\n")
+        result = dlg.ShowModal()
+
+        if result == wx.ID_YES:
+            exit_code = 42
+            self.Close(True)
+
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', default='0')
+    parser.add_argument('--root-dir')
 
     conn = None
 
@@ -1583,7 +1618,12 @@ def main():
     from pathlib import Path
     from configparser import ConfigParser
 
-    d = Path(__file__).parents[1]
+    d = parser.parse_args().root_dir
+    if not d:
+        d = Path(__file__).parents[1]
+    else:
+        d = Path(d)
+
     c = d / '.cfg'
     f = d / 'platformio.ini'
     cp = ConfigParser(
@@ -1613,11 +1653,11 @@ def main():
                      'input': cp.getlist(hw, 'ain', fallback=[]),
                      'holding': cp.getlist(hw, 'aout', fallback=[]),
                      'discrete_count': cp.get(hw, 'discrete_count',
-                                                 fallback=None),
+                                              fallback=None),
                      'coil_count': cp.get(hw, 'coil_count', fallback=None),
                      'input_count': cp.get(hw, 'input_count', fallback=None),
                      'holding_count': cp.get(hw, 'holding_count', fallback=None),
-                    }
+                     }
 
                 # set minimum to 4 registers
                 for b in ('coil', 'discrete', 'holding', 'input'):
@@ -1648,10 +1688,12 @@ def main():
                 pass
 
     app = wx.App()
-    ex = Uploader(None, boards=a, cfg=str(c), cwd=d, title='Uploader',
+    ex = Uploader(None, boards=a, cfg=str(c), cwd=d, title='OpenPLC Uploader',
                   conn=conn)
     ex.Show()
     app.MainLoop()
+
+    sys.exit(exit_code)
 
 
 if __name__ == '__main__':
