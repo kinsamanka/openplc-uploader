@@ -5,7 +5,6 @@ from pathlib import Path
 import platform
 from pubsub import pub
 from shutil import rmtree
-from os import rename
 import subprocess
 from threading import Thread
 import wx
@@ -133,16 +132,16 @@ sep = ' & ' if is_windows else ' ; '
 def p7zip_init(cwd, path):
     p = Path(path)
 
-    curl = f'{p / "bin" / "curl"}'
-    p7z = f'{p / "bin" / "7z"}'
+    curl = f'"{p / "bin" / "curl"}"'
+    p7z = f'"{p / "bin" / "7z"}"'
 
-    curl += f' --cacert {p / "ssl" / "cacert.pem"}'
+    curl += f' --cacert "{p / "ssl" / "cacert.pem"}"'
 
     cmd = ''
     for r in repo:
         cmd += (f'{curl} -L https://github.com/{r}.tar.gz | '
                 f'{p7z} x -tgzip -si -so | '
-                f'{p7z} x -ttar -si -y -o{Path(cwd).parent / "tmp"}')
+                f'{p7z} x -ttar -si -y -o"{Path(cwd).parent / "tmp"}"')
         cmd += sep
     return cmd
 
@@ -151,19 +150,19 @@ def tar_init(cwd, path):
     p = Path(path)
     c = Path(cwd)
 
-    curl = f"{p / 'bin' / 'curl'}"
-    tar = f"{p / 'bin' / 'tar'}"
+    curl = f'"{p / "bin" / "curl"}"'
+    tar = f'"{p / "bin" / "tar"}"'
 
-    curl += f" --cacert {p / 'ssl' / 'cacert.pem'}"
+    curl += f' --cacert "{p / "ssl" / "cacert.pem"}"'
 
     cmd = (f'{curl} -L https://github.com/{repo[0]}.tar.gz | '
-           f'{tar} xvzf - --strip=1 -C {c}')
+           f'{tar} xvzf - --strip=1 -C "{c}"')
     cmd += sep
     cmd += (f'{curl} -L https://github.com/{repo[1]}.tar.gz | '
-            f'{tar} xvzf - --strip=1 -C {c / "lib" / "matiec"}')
+            f'{tar} xvzf - --strip=1 -C "{c / "lib" / "matiec"}"')
     cmd += sep
     cmd += (f'{curl} -L https://github.com/{repo[2]}.tar.gz | '
-            f'{tar} xvzf - --strip=1 -C {c / "lib" / "modbus"}')
+            f'{tar} xvzf - --strip=1 -C "{c / "lib" / "modbus"}"')
 
     return cmd
 
@@ -188,13 +187,13 @@ def main(cwd=None, path=None, update=False):
         dst = Path(cwd)
         src = dst.parent / 'tmp'
 
-        rename(src / dir_names[0], dst)
+        (src / dir_names[0]).rename(dst)
 
         rmtree(dst / 'lib' / 'matiec', ignore_errors=True)
         rmtree(dst / 'lib' / 'modbus', ignore_errors=True)
 
-        rename(src / dir_names[1], dst / 'lib' / 'matiec')
-        rename(src / dir_names[2], dst / 'lib' / 'modbus')
+        (src / dir_names[1]).rename(dst / 'lib' / 'matiec')
+        (src / dir_names[2]).rename(dst / 'lib' / 'modbus')
 
         rmtree(src, ignore_errors=True)
 
