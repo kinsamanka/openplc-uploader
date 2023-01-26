@@ -79,6 +79,7 @@ gui_exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
+    icon=['assets/uploader.ico']
 )
 
 coll = COLLECT(

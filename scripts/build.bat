@@ -37,27 +37,31 @@ echo ## basic miniconda installed
 call "%CONDA_DIR%\condabin\conda" update -n base -yc defaults --all
 call "%CONDA_DIR%\condabin\conda" activate base 
 echo ## installing required packages
-call conda install -y -c conda-forge wxpython=4.1.1 platformio=6.1.6 git pypubsub
+call conda install -y -c conda-forge platformio=6.1.6 wxpython=4.1.1 ^
+    pyinstaller=5.6.2 git pypubsub curl 7zip
 conda deactivate
 endlocal
 exit /b 0
 
-:start_ui
+:package
 setlocal
 call "%CONDA_DIR%\condabin\conda" activate base 
-:: start pythonz "%BUILDER_DIR%\bin\gui.py"
-start pythonw "%BUILDER_DIR%\bin\gui.py"
+pyinstaller "%BUILDER_DIR%\assets\uploader.spec" -y
+copy "%BUILDER_DIR%\assets\uploader.lnk" dist
+pushd dist
+7z a ..\uploader.zip bin uploader.lnk
+popd
 endlocal
 exit /b 0
 
 :main
 if exist "%CONDA_DIR%" (
   if exist "%BUILDER_DIR%" (
-    call :start_ui
+    call :package
   ) else (
     :: continue aborted install
     call :clone_repo
-    call :start_ui
+    call :package
   )
   exit /b 0
 )
@@ -66,4 +70,4 @@ if not exist "%CONDA_FNAME%" call :download_installer
 
 call :install_conda
 call :clone_repo
-call :start_ui
+call :package
