@@ -4,10 +4,21 @@
 from pathlib import Path
 import platform
 from pubsub import pub
+from shutil import rmtree
+from os import rename
 import subprocess
 from threading import Thread
 import wx
 from wx.lib.embeddedimage import PyEmbeddedImage
+
+
+repo = ('kinsamanka/openplc-uploader/archive/refs/heads/master',
+        'kinsamanka/matiec/archive/refs/heads/dist',
+        'Jacajack/liblightmodbus/archive/3f8ebeba')
+
+dir_names = ('openplc-uploader-master',
+             'matiec-dist',
+             'liblightmodbus-3f8ebeba2d14767c12f502025844463c6a04ecba')
 
 
 class WorkerThread(Thread):
@@ -114,40 +125,78 @@ class MyApp(wx.App):
         return True
 
 
+is_windows = platform.system() == "Windows"
+
+sep = ' & ' if is_windows else ' ; '
+
+
+def p7zip_init(cwd, path):
+    p = Path(path)
+
+    curl = f'{p / "bin" / "curl"}'
+    p7z = f'{p / "bin" / "7z"}'
+
+    curl += f' --cacert {p / "ssl" / "cacert.pem"}'
+
+    cmd = ''
+    for r in repo:
+        cmd += (f'{curl} -L https://github.com/{r}.tar.gz | '
+                f'{p7z} x -tgzip -si -so | '
+                f'{p7z} x -ttar -si -y -o{Path(cwd).parent / "tmp"}')
+        cmd += sep
+    return cmd
+
+
+def tar_init(cwd, path):
+    p = Path(path)
+    c = Path(cwd)
+
+    curl = f"{p / 'bin' / 'curl'}"
+    tar = f"{p / 'bin' / 'tar'}"
+
+    curl += f" --cacert {p / 'ssl' / 'cacert.pem'}"
+
+    cmd = (f'{curl} -L https://github.com/{repo[0]}.tar.gz | '
+           f'{tar} xvzf - --strip=1 -C {c}')
+    cmd += sep
+    cmd += (f'{curl} -L https://github.com/{repo[1]}.tar.gz | '
+            f'{tar} xvzf - --strip=1 -C {c / "lib" / "matiec"}')
+    cmd += sep
+    cmd += (f'{curl} -L https://github.com/{repo[2]}.tar.gz | '
+            f'{tar} xvzf - --strip=1 -C {c / "lib" / "modbus"}')
+
+    return cmd
+
+
 def main(cwd=None, path=None, update=False):
 
-    if cwd and path and update:
-
-        if platform.system() == "Windows":
-            sep = '&'
+    if cwd and path:
+        if is_windows:
+            rmtree(Path(cwd), ignore_errors=True)
+            cmd = p7zip_init(cwd, path)
         else:
-            sep = ';'
-
-        cmd = ['cd', str(Path(cwd)),
-               sep,
-               str(Path(path) / 'bin' / 'git'),
-               'reset', '--hard', 'HEAD',
-               sep,
-               str(Path(path) / 'bin' / 'git'),
-               'pull', '--recurse-submodules', '-f',
-               ]
-
-    elif cwd and path:
-
-        cmd = [str(Path(path) / 'bin' / 'git'),
-               'clone', '--depth=1', '-v', '--recursive', '-b', 'pyinstaller',
-               'https://github.com/kinsamanka/openplc-uploader',
-               str(Path(cwd)),
-               ]
+            Path(cwd).mkdir(parents=True, exist_ok=True)
+            cmd = tar_init(cwd, path)
 
     else:
-
-        cmd = ["ls", "-l;", "sleep 2"]
-
-    cmd = " ".join(cmd)
+        cmd = f'echo "no supplied commands" {sep} sleep 10'
 
     app = MyApp(cmd=cmd)
     app.MainLoop()
+
+    if cwd and path and is_windows:
+        dst = Path(cwd)
+        src = dst.parent / 'tmp'
+
+        rename(src / dir_names[0], dst)
+
+        rmtree(dst / 'lib' / 'matiec', ignore_errors=True)
+        rmtree(dst / 'lib' / 'modbus', ignore_errors=True)
+
+        rename(src / dir_names[1], dst / 'lib' / 'matiec')
+        rename(src / dir_names[2], dst / 'lib' / 'modbus')
+
+        rmtree(src, ignore_errors=True)
 
 
 if __name__ == "__main__":

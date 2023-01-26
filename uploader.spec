@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
+from distutils.sysconfig import get_python_lib
+import json
 from pathlib import Path
 import platform
 import shutil
@@ -10,15 +12,20 @@ block_cipher = None
 
 datas, binaries, hiddenimports = collect_all('platformio')
 
-if platform.system() == "Windows":
-
-    out = check_output(["conda", "list", "git"]).decode().split()
-    dir = Path(out[5][:-1]) / 'pkgs' / '-'.join(out[12:15]) / 'Library'
-    datas += [(str(dir), '.')]
-
+if platform.system() == 'Windows':
+    root = Path(get_python_lib()).parents[1] / 'pkgs'
+    cmds = ('ca-certificates', 'curl', 'libcurl', 'libssh2', 'openssl',
+            'zlib', '7zip')
+    post = 'Library'
 else:
+    root = Path(get_python_lib()).parents[2] / 'pkgs'
+    cmds = ('ca-certificates', 'curl', 'libcurl', 'tar')
+    post = ''
 
-    binaries += [(shutil.which('git'), './bin/')]
+for c in cmds:
+    out = check_output(['conda', 'list', '--json', '-f', c]).decode()
+    dir = str(root / json.loads(out)[0]['dist_name'] / post)
+    datas += [(dir, '.')]
 
 a = Analysis(
     ['bin/start_pio.py'],
@@ -33,6 +40,7 @@ a = Analysis(
 
 b = Analysis(
     ['bin/start_gui.py'],
+    pathex=['bin'],
     hiddenimports=['gui'],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
