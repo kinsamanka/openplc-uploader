@@ -28,7 +28,7 @@ for c in cmds:
     datas += [(dir, '.')]
 
 a = Analysis(
-    ['bin/start_pio.py'],
+    ['../bin/start_pio.py'],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
@@ -39,7 +39,7 @@ a = Analysis(
 )
 
 b = Analysis(
-    ['bin/start_gui.py'],
+    ['../bin/start_gui.py'],
     pathex=['bin'],
     hiddenimports=['gui'],
     win_no_prefer_redirects=False,
@@ -79,7 +79,7 @@ gui_exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    icon=['assets/uploader.ico']
+    icon=['uploader.ico']
 )
 
 coll = COLLECT(
