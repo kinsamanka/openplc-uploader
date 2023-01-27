@@ -23,6 +23,18 @@ git clone --recursive --depth=1 https://github.com/kinsamanka/openplc-uploader.g
 endlocal
 exit /b 0
 
+:update_repo
+echo ## updating git repo
+setlocal
+call "%CONDA_DIR%\condabin\conda" activate base 
+pushd "%BUILDER_DIR%"
+git reset --hard
+git pull
+git submodule update --recursive
+popd
+endlocal
+exit /b 0
+
 :download_installer
 echo ## Downloading Miniconda installer ...
 bitsadmin /transfer getminiconda /download /priority normal %CONDA_URL% "%PWD%%CONDA_FNAME%"
@@ -49,14 +61,16 @@ call "%CONDA_DIR%\condabin\conda" activate base
 pyinstaller "%BUILDER_DIR%\assets\uploader.spec" -y
 copy "%BUILDER_DIR%\assets\uploader.lnk" dist
 pushd dist
-7z a ..\uploader.zip bin uploader.lnk
+7z a ..\uploader_win-64.zip bin uploader.lnk
 popd
 endlocal
 exit /b 0
 
 :main
+
 if exist "%CONDA_DIR%" (
   if exist "%BUILDER_DIR%" (
+    call :update_repo
     call :package
   ) else (
     :: continue aborted install

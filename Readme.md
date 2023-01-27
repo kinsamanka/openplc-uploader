@@ -4,12 +4,12 @@
 - Pre-built executables can be downloaded [here](https://github.com/kinsamanka/openplc-uploader/releases).
 
 ##### Build executable from source
-- Download the build script for windows [here](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/build.bat).
+- Download the build script: [[windows](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/build.bat)] [[linux](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/build.sh)].
 - Save and run the script on a dedicated folder.
 - The resulting binary can be found under the `dist` directory.
 
 ##### Run from source
-- Download the script for windows [here](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/start.bat).
+- Download the script: [[windows](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/start.bat)] [[linux](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/start.sh)].
 - Save and run the batch file in a dedicated folder.
 
 ------------
