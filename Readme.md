@@ -1,11 +1,20 @@
-## Installation Steps for  STM32 boards or FX3U PLC's
+## Installation
+
+##### Download
+- Pre-built executables can be downloaded [here](https://github.com/kinsamanka/openplc-uploader/releases).
+
+##### Build executable from source
+- Download the build script for windows [here](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/build.bat).
+- Save and run the script on a dedicated folder.
+- The resulting binary can be found under the `dist` directory.
+
+##### Run from source
+- Download the script for windows [here](https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/start.bat).
+- Save and run the batch file in a dedicated folder.
 
 ------------
 
-#### Download
-- Dowload the installer: https://raw.githubusercontent.com/kinsamanka/openplc-uploader/master/scripts/start.bat
-- Save it in a dedicated folder, the batch file will install the required files into that directory
-- Double click the batch file and wait until it is done.
+## STM32 boards or FX3U PLC's Usage
 
 #### Enable DFU mode on PLC
 - Disconnect PLC power
