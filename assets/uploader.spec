@@ -19,7 +19,9 @@ if platform.system() == 'Windows':
     post = 'Library'
 else:
     root = Path(get_python_lib()).parents[2] / 'pkgs'
-    cmds = ('ca-certificates', 'curl', 'libcurl', 'tar')
+    cmds = ('ca-certificates', 'curl', 'libcurl', 'libiconv', 'libssh2',
+            'openssl', 'tar')
+    post = ''
     post = ''
 
 for c in cmds:
