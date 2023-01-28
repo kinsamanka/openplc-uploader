@@ -30,7 +30,7 @@ for c in cmds:
     datas += [(dir, '.')]
 
 a = Analysis(
-    ['../bin/start_pio.py'],
+    ['../bin/frozen.py'],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
@@ -58,7 +58,7 @@ pio_exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='pio',
+    name='frozenpy',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -28,7 +28,7 @@ class WorkerThread(Thread):
         self.upload = False
 
         if is_frozen:
-            self.cmd = [f'{Path(sys._MEIPASS) / "pio"}']
+            self.cmd = [f'{Path(sys._MEIPASS) / "frozenpy"}', 'pio']
         else:
             self.cmd = ['pio']
 
