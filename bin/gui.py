@@ -16,6 +16,7 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 
 exit_code = 0
 is_frozen = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+is_win = platform.system() == "Windows"
 
 
 class WorkerThread(Thread):
@@ -27,7 +28,7 @@ class WorkerThread(Thread):
         self.upload = False
 
         if is_frozen:
-            self.cmd = [f'"{Path(sys._MEIPASS) / "pio"}"']
+            self.cmd = [f'{Path(sys._MEIPASS) / "pio"}']
         else:
             self.cmd = ['pio']
 
@@ -36,9 +37,7 @@ class WorkerThread(Thread):
         else:
             self.cmd.extend(['--no-ansi', 'run', '-e', e['id']])
 
-        win = platform.system() == "Windows"
-
-        esc_quote = "\\'" if not win else ""
+        esc_quote = "\\'" if not is_win else ""
 
         if e['src']:
             self.env['OPENPLC_SRC'] = e['src']
@@ -126,14 +125,14 @@ class WorkerThread(Thread):
                 f.append(f'-DCONFIG_WIFI_DNS={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['ssid']
             if t:
-                if win:
+                if is_win:
                     f.append(f"-DCONFIG_SSID='\"{t}\"'")
                 else:
                     t = t.replace(' ', '\\ ')
                     f.append(f'-DCONFIG_SSID=\\"{t}\\"')
             t = e['tcp']['password']
             if t:
-                if win:
+                if is_win:
                     f.append(f"-DCONFIG_WIFI_PASS='\"{t}\"'")
                 else:
                     t = t.replace(' ', '\\ ')
@@ -167,13 +166,14 @@ class WorkerThread(Thread):
         self.start()
 
     def run(self):
-        process = subprocess.Popen(
-            ' '.join(self.cmd),
+        self.process = subprocess.Popen(
+            self.cmd,
             cwd=self.cwd,
             encoding='utf-8',
             env={**os.environ, **self.env},
             errors='replace',
-            shell=True,
+            shell=False,
+            creationflags=0 if not is_win else subprocess.CREATE_NO_WINDOW,
             stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE,
         )
@@ -187,8 +187,8 @@ class WorkerThread(Thread):
         out['data'].append(f'{"":=>36} Start {"":=<36}')
 
         while True:
-            r = process.stdout.readline()
-            if r == '' and process.poll() is not None:
+            r = self.process.stdout.readline()
+            if r == '' and self.process.poll() is not None:
                 break
             if r:
                 out['index'] += 1
@@ -1280,7 +1280,7 @@ class Uploader(wx.Frame):
 
         self.SetIcon(self._logo.GetIcon())
 
-        self.Bind(wx.EVT_CLOSE, self.on_terminate)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
         self.load_config()
 
@@ -1292,8 +1292,8 @@ class Uploader(wx.Frame):
         menubar.Append(menu, '&File')
         self.SetMenuBar(menubar)
 
-        #if not is_frozen:
-        #    update.Enable(False)
+        if not is_frozen:
+            update.Enable(False)
 
         self.Bind(wx.EVT_MENU, self.on_close, quit)
         self.Bind(wx.EVT_MENU, self.on_update, update)
@@ -1534,9 +1534,34 @@ class Uploader(wx.Frame):
             self.worker = WorkerThread(self.cwd, s)
 
     def on_close(self, e):
-        self.Close(True)
 
-    def on_terminate(self, e):
+        def kill_after(tries):
+            if self.worker.process.poll() is None:
+                tries -= 1
+                if tries < 0:
+                    self.worker.process.kill()
+                else:
+                    wx.CallLater(500, kill_after, tries)
+                    return
+
+            self.worker.process.stdout.close()
+            self.worker.process.wait()
+
+        if self.worker:
+            dlg = wx.GenericMessageDialog(None,
+                                   "Do you want to close the application?\t",
+                                   'Terminate',
+                                   style = wx.YES_NO | wx.ICON_QUESTION)
+            dlg.SetExtendedMessage("PlatformIO is still busy.\t\n")
+            result = dlg.ShowModal()
+
+            if result == wx.ID_NO:
+                return
+            else:
+                if self.worker:
+                    self.worker.process.terminate()
+                    kill_after(2)
+
         self.save_config()
         self.Destroy()
 
