@@ -38,6 +38,8 @@ class WorkerThread(Thread):
 
         win = platform.system() == "Windows"
 
+        esc_quote = "\\'" if not win else ""
+
         if e['src']:
             self.env['OPENPLC_SRC'] = e['src']
         if e['port']:
@@ -57,13 +59,13 @@ class WorkerThread(Thread):
         f.append(f'-DCOIL_COUNT={t}')
 
         t = ','.join(e['io']['cur_config']['din'])
-        f.append(f'-DDIN={{{t}}}')
+        f.append(f'-DDIN={esc_quote}{{{t}}}{esc_quote}')
         t = ','.join(e['io']['cur_config']['dout'])
-        f.append(f'-DDOUT={{{t}}}')
+        f.append(f'-DDOUT={esc_quote}{{{t}}}{esc_quote}')
         t = ','.join(e['io']['cur_config']['ain'])
-        f.append(f'-DAIN={{{t}}}')
+        f.append(f'-DAIN={esc_quote}{{{t}}}{esc_quote}')
         t = ','.join(e['io']['cur_config']['aout'])
-        f.append(f'-DAOUT={{{t}}}')
+        f.append(f'-DAOUT={esc_quote}{{{t}}}{esc_quote}')
 
         if e['rtu']['master_en']:
             if e['rtu']['master_port']:
@@ -95,33 +97,33 @@ class WorkerThread(Thread):
             f.append(f'-DMODBUS_ETH')
             t = e['tcp']['ip'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_IP={{{t}}}')
+                f.append(f'-DCONFIG_IP={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['subnet'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_SUBNET={{{t}}}')
+                f.append(f'-DCONFIG_SUBNET={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['gw'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_GW={{{t}}}')
+                f.append(f'-DCONFIG_GW={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['dns'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_DNS={{{t}}}')
+                f.append(f'-DCONFIG_DNS={esc_quote}{{{t}}}{esc_quote}')
             t = ','.join([f'0x{n}' for n in e['tcp']['mac'].split(':')])
-            f.append(f'-DCONFIG_MAC={{{t}}}')
+            f.append(f'-DCONFIG_MAC={esc_quote}{{{t}}}{esc_quote}')
 
         if e['tcp']['en'] and not e['tcp']['wired']:
             f.append(f'-DMODBUS_WIFI')
             t = e['tcp']['ip'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_WIFI_IP={{{t}}}')
+                f.append(f'-DCONFIG_WIFI_IP={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['subnet'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_WIFI_SUBNET={{{t}}}')
+                f.append(f'-DCONFIG_WIFI_SUBNET={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['gw'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_WIFI_GW={{{t}}}')
+                f.append(f'-DCONFIG_WIFI_GW={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['dns'].replace('.', ',')
             if t != '0,0,0,0':
-                f.append(f'-DCONFIG_WIFI_DNS={{{t}}}')
+                f.append(f'-DCONFIG_WIFI_DNS={esc_quote}{{{t}}}{esc_quote}')
             t = e['tcp']['ssid']
             if t:
                 if win:
@@ -142,10 +144,10 @@ class WorkerThread(Thread):
         if e['bootloader']:
             if l:
                 s = l.pop()
-                f.append(f'-DRUN_LED={{{{GPIO{s[1:2]},GPIO{s[2:]}}},0}}')
+                f.append(f'-DRUN_LED={esc_quote}{{{{GPIO{s[1:2]},GPIO{s[2:]}}},0}}{esc_quote}')
             if l:
                 s = l.pop()
-                f.append(f'-DERR_LED={{{{GPIO{s[1:2]},GPIO{s[2:]}}},0}}')
+                f.append(f'-DERR_LED={esc_quote}{{{{GPIO{s[1:2]},GPIO{s[2:]}}},0}}{esc_quote}')
         else:
             if l:
                 s = l.pop()
