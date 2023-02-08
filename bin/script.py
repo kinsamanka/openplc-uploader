@@ -46,7 +46,8 @@ if 'stm32' in env['PIOPLATFORM'] and "boot" not in env["PIOENV"]:
 # mark these libs as system to ignore GCC warnings
 env.Append(CCFLAGS=["-isystem", "lib/matiec/lib/C"])
 
-env.Append(CFLAGS=["-Wno-unused-but-set-variable"])
+env.Append(CFLAGS=["-Wno-unused-but-set-variable", "-Wno-unused-variable",
+                   "-Werror=implicit-function-declaration"])
 
 # Register callback
 env.AddBuildMiddleware(skip_from_build, "*")
