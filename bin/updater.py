@@ -12,11 +12,11 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 
 
 repo = ('kinsamanka/openplc-uploader/archive/refs/heads/master',
-        'kinsamanka/matiec/archive/refs/heads/dist',
+        'kinsamanka/matiec/archive/20280846',
         'Jacajack/liblightmodbus/archive/3f8ebeba')
 
 dir_names = ('openplc-uploader-master',
-             'matiec-dist',
+             'matiec-2028084698ed81594da3d4f19b81fb17ffd4c71b',
              'liblightmodbus-3f8ebeba2d14767c12f502025844463c6a04ecba')
 
 
