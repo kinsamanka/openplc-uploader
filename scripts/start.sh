@@ -4,13 +4,20 @@ BUILD_DIR="$PWD/build"
 CONDA_DIR="$PWD/conda"
 PATH="$CONDA_DIR/bin:$PATH"
 UNAME=`uname`
+ARCH=`uname -m`
+PYTHON="python"
 
-CONDA_URL=http://repo.continuum.io/miniconda/Miniconda3-latest-$UNAME-x86_64.sh
+if [ "$UNAME" = "Darwin" ]; then
+    UNAME="MacOSX"
+    PYTHON="pythonw"
+fi
+
+CONDA_URL=http://repo.continuum.io/miniconda/Miniconda3-latest-$UNAME-$ARCH.sh
 
 if [ ! -d "$CONDA_DIR" ]; then
     mkdir -p "$CONDA_DIR"
     cd "$CONDA_DIR"
-    wget $CONDA_URL -O miniconda.sh
+    curl -L $CONDA_URL -o miniconda.sh
     bash miniconda.sh -f -b -p "$CONDA_DIR"
     conda update --all -y
     conda config --set auto_update_conda False
@@ -27,4 +34,4 @@ if [ ! -d "$BUILD_DIR" ]; then
             https://github.com/kinsamanka/openplc-uploader.git "$BUILD_DIR"
 fi
 
-python "$BUILD_DIR/bin/gui.py"
+$PYTHON "$BUILD_DIR/bin/gui.py"

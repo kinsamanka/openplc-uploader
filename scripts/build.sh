@@ -10,7 +10,7 @@ CONDA_URL=http://repo.continuum.io/miniconda/Miniconda3-latest-$UNAME-x86_64.sh
 if [ ! -d "$CONDA_DIR" ]; then
     mkdir -p "$CONDA_DIR"
     cd "$CONDA_DIR"
-    wget $CONDA_URL -O miniconda.sh
+    curl -L $CONDA_URL -o miniconda.sh
     bash miniconda.sh -f -b -p "$CONDA_DIR"
     conda update --all -y
     conda config --set auto_update_conda False

@@ -5,6 +5,7 @@ from subprocess import check_output
 import platform
 
 win = platform.system() == "Windows"
+osx = platform.system() == "Darwin"
 
 
 def skip_from_build(node):
@@ -63,7 +64,12 @@ path = f"{env['PROJECT_DIR']}/lib/matiec"
 if win:
     path = PureWindowsPath(path).as_posix()
 
-c = f'"{path}/bin/iec2c.exe"' if win else f'{path}/bin/iec2c'
+if win:
+    c = f'"{path}/bin/iec2c.exe"'
+elif osx:
+    c = f'"{path}/bin/iec2c.osx"'
+else:
+    c = f'"{path}/bin/iec2c"'
 
 cmd = [c, '-l', '-I', 'lib/matiec/lib', '-T', 'src/generated', f'"{src}"']
 
