@@ -68,6 +68,8 @@ if win:
     c = f'"{path}/bin/iec2c.exe"'
 elif osx:
     c = f'"{path}/bin/iec2c.osx"'
+    if platform.machine() == 'arm64':
+        c += '_arm64'
 else:
     c = f'"{path}/bin/iec2c"'
 
