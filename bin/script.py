@@ -25,11 +25,6 @@ def fix_pous_c(node):
     if "POUS" not in node.name:
         return node
 
-    return env.Object(
-        node,
-        CCFLAGS=env["CCFLAGS"] + ["-include", "generated/POUS.h"]
-    )
-
 
 Import("env")
 
