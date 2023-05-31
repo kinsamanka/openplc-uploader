@@ -1338,7 +1338,10 @@ class Uploader(wx.Frame):
                                 wx.HSCROLL | wx.VSCROLL)
         self.term.SetFont(wx.Font(8, wx.FONTFAMILY_TELETYPE, wx.NORMAL,
                                   wx.NORMAL, faceName="Monospace"))
-        self.term.SetDefaultStyle(wx.TextAttr(wx.LIGHT_GREY, wx.BLACK))
+        if is_win:
+            self.term.SetForegroundColour(wx.Colour(wx.LIGHT_GREY))
+        else:
+            self.term.SetDefaultStyle(wx.TextAttr(wx.LIGHT_GREY, wx.BLACK))
         self.term.SetBackgroundColour(wx.Colour(wx.BLACK))
 
         self.nb2 = wx.Notebook(self.nb1)
