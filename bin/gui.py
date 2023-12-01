@@ -1446,7 +1446,7 @@ class Uploader(wx.Frame):
 
     def on_config_change(self, msg):
         self.board_platform = msg['platform']
-        self.bootloader_en = msg['platform'] == 'ststm32'
+        self.bootloader_en = 'ststm32' in msg['platform']
         self.cb_boot_en.Enable(self.bootloader_en)
         self.led = msg['led']
 
@@ -1513,7 +1513,7 @@ class Uploader(wx.Frame):
 
             if 'platform' in s:
                 self.board_platform = s['platform']
-                self.bootloader_en = s['platform'] == 'ststm32'
+                self.bootloader_en = 'ststm32' in s['platform'] 
                 self.cb_boot_en.Enable(self.bootloader_en)
 
             if 'led' in s:
