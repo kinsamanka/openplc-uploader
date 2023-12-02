@@ -184,6 +184,7 @@ class WorkerThread(Thread):
         for s in self.env['PLATFORMIO_BUILD_SRC_FLAGS'].split():
             out['data'].append(s)
             out['index'] += 1
+        out['data'].append(f'\nCWD: {os.getcwd()}')
         out['data'].append(f'{"":=>36} Start {"":=<36}')
 
         while True:
